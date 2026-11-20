@@ -1,0 +1,64 @@
+import {createGame,step,timeLeft,distance,snapshot} from '/src/game.mjs';
+import {createCampaign,beginCampaign,playNight,recordNightResult,nextNight,retryNight,campaignMenu,NIGHT_INTROS} from '/src/campaign.mjs';
+import {createRenderer} from './renderer.mjs';
+import {loadSettings} from './settings.mjs';
+import {settingsPanel} from './settings-panel.mjs';
+import {createAudio} from './audio.mjs';
+const $=id=>document.getElementById(id),keys=new Set(),campaign=createCampaign(),audio=createAudio();
+let settings=loadSettings(),state=createGame(),mode='menu',previous=0,accumulator=0,cameraYaw=.24,cameraRange=24,dragging=false,lastCountdown=-1,renderer;
+audio.setVolume(settings.volume);
+export const readGameState=()=>snapshot(state);
+export const readCampaign=()=>structuredClone(campaign);
+// Read-only measured frame timings, excludes loading and paused/menu frames.
+const frameTimes=[];export const readPerformance=()=>{const elapsedMs=frameTimes.reduce((a,b)=>a+b,0);return{frames:frameTimes.length,elapsedMs,averageFps:elapsedMs?1000*frameTimes.length/elapsedMs:0,width:$('world').width,height:$('world').height};};
+try{renderer=createRenderer($('world'));}catch(e){$('error').hidden=false;$('error').textContent=e.message;}
+for(let i=0;i<10;i++)$('slots').append(document.createElement('i'));
+function screen(title,text,actions,eyebrow='ĐẢO ĐÈN LỒNG'){
+  $('overlay').hidden=false;const box=$('overlay').firstElementChild;box.replaceChildren();
+  for(const[tag,value]of[['p',eyebrow],['h2',title],['p',text]]){const e=document.createElement(tag);e.textContent=value;if(tag==='p'&&value===eyebrow)e.className='eyebrow';box.append(e);}
+  for(const[label,action,id]of actions){const b=document.createElement('button');b.textContent=label;if(id)b.id=id;if(box.querySelectorAll('button').length===0)b.className='primary';b.addEventListener('click',action);box.append(b);}
+}
+function menu(){mode='menu';campaignMenu(campaign);audio.stop();keys.clear();document.body.classList.remove('paused');screen('Một đốm nhỏ. Cả trời sáng lên.','Cùng Mây qua ba hòn đảo. Thu thập đom đóm, thắp Đèn Lồng Lớn và đưa bình minh trở lại.',[['Hành trình mới',()=>{beginCampaign(campaign);intro();},'new-game'],['Cài đặt',()=>openSettings(menu)]]);}
+function intro(){mode='intro';const n=NIGHT_INTROS[campaign.night-1];screen(n.name,n.words,[['Bắt đầu Đêm',start,'begin'],['Về menu',menu]],`ĐÊM ${campaign.night} / 3`);}
+function start(){playNight(campaign);state=createGame(12,{},campaign.night);lastCountdown=-1;frameTimes.length=0;audio.unlock().then(()=>audio.music(campaign.night)).catch(()=>{});resume();updateHUD();}
+function resume(){mode='playing';campaign.phase='playing';keys.clear();accumulator=0;previous=performance.now();$('overlay').hidden=true;document.body.classList.remove('paused');$('pause').textContent='Tạm dừng';audio.music(campaign.night);}
+function restart(){if(['menu','intro'].includes(mode))return;retryNight(campaign);intro();}
+function openSettings(back){settingsPanel($('overlay').firstElementChild,back,value=>{settings=value;audio.setVolume(value.volume);});}
+function showPause(){screen('Dừng chân một chút.','Ánh sáng sẽ chờ bạn trở lại.',[['Tiếp tục',()=>togglePause(),'resume'],['Chơi lại Đêm',restart],['Cài đặt',()=>openSettings(showPause)],['Về menu',menu]]);}
+function togglePause(){
+  if(!['playing','paused'].includes(mode))return;
+  state.input.pause=false;step(state,{pause:true,move:[0,0],jump:false,dash:false,pulse:false,interact:false});
+  if(state.status==='paused'){mode='paused';campaign.phase='paused';keys.clear();audio.stop();document.body.classList.add('paused');$('pause').textContent='Tiếp tục';showPause();}else resume();
+}
+function endNight(){mode='result';keys.clear();audio.stop();audio.effect(state.status);recordNightResult(campaign,state.status,state.score);
+  screen(state.status==='won'?'Đêm đã có ánh sáng.':'Mây cần nghỉ ngơi.',`Điểm Đêm này: ${state.score}. Tổng các Đêm đã thắng: ${campaign.totalScore}.`,state.status==='won'?[['Đón Đêm tiếp theo',()=>{nextNight(campaign);if(campaign.phase==='dawn'){mode='dawn';screen('Bình Minh',`Ba hòn đảo đã sáng. Tổng điểm hành trình: ${campaign.totalScore}.`,[['Hành trình mới',()=>{beginCampaign(campaign);intro();}],['Về menu',menu]],'TIẾNG CHUÔNG ĐÃ GỌI MẶT TRỜI');}else intro();},'next-night'],['Về menu',menu]]:[['Chơi lại Đêm',restart,'retry-night'],['Về menu',menu]]);
+}
+function updateHUD(){
+  const p=state.player;hotText('health','♥ '.repeat(p.health)+'♡ '.repeat(3-p.health));hotText('night',`Đêm ${state.night} · ${NIGHT_INTROS[state.night-1].name}`);hotText('lamps',`${state.lanterns.filter(l=>l.lit).length} / ${state.lanterns.length}`);hotText('score',String(state.score));hotText('flies',`${p.inventory} / 10`);
+  [...$('slots').children].forEach((e,i)=>e.classList.toggle('full',i<p.inventory));
+  const seconds=Math.ceil(timeLeft(state));hotText('time',`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`);$('time').classList.toggle('urgent',seconds<=30);
+  hotText('dash',p.charmTicks>0?'SHIFT · Lướt ∞':p.dashCd>0?`Lướt · ${(p.dashCd/60).toFixed(1)} s`:'SHIFT · Lướt');$('dash').classList.toggle('waiting',p.dashCd>0&&p.charmTicks===0);
+  hotText('pulse',p.pulseCd>0?`Tỏa sáng · ${(p.pulseCd/60).toFixed(1)} s`:'F · Tỏa sáng (3)');$('pulse').classList.toggle('waiting',p.pulseCd>0);hotText('charm',p.charmTicks>0?`Bùa Gió · ${(p.charmTicks/60).toFixed(1)} s`:'');
+  const lamp=state.lanterns.filter(l=>!l.lit&&distance(l,p)<=2).sort((a,b)=>distance(a,p)-distance(b,p)||a.id.localeCompare(b.id))[0];hotText('prompt',p.respawnTicks>0?'Mây đang trở về bến…':lamp?`E — Nạp ánh sáng (${lamp.deposited}/10)`:'');
+  hotText('wind',state.wind.warning?'Lá báo gió · 2 giây nữa gió sẽ nổi!':state.wind.active?'Gió mạnh · giữ bước chân!':'');
+  const nearest=state.lanterns.filter(l=>!l.lit).sort((a,b)=>distance(a,p)-distance(b,p))[0],projected=nearest&&renderer?.project({...nearest,y:nearest.y+2});$('direction').hidden=!projected||projected.visible;
+  if(projected&&!projected.visible){$('arrow').style.transform=`rotate(${Math.atan2(projected.x,projected.y)*180/Math.PI}deg)`;hotText('distance',`${nearest.id} · ${Math.round(distance(nearest,p))} m`);}
+}
+function hotText(id,text){if($(id).textContent!==text)$(id).textContent=text;}
+$('pause').addEventListener('click',togglePause);$('restart').addEventListener('click',restart);
+window.addEventListener('keydown',e=>{if(['Escape','KeyP'].includes(e.code)&&!e.repeat){e.preventDefault();togglePause();}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyF','KeyE','ShiftLeft','ShiftRight'].includes(e.code)){e.preventDefault();if(mode==='playing')keys.add(e.code);}});
+window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{if(mode==='playing')togglePause();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing')togglePause();});
+const canvas=$('world');canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventListener('pointerdown',e=>{if(e.button===2){dragging=true;canvas.setPointerCapture(e.pointerId);}});canvas.addEventListener('pointermove',e=>{if(dragging)cameraYaw-=e.movementX*.005*settings.sensitivity;});canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('lostpointercapture',()=>dragging=false);canvas.addEventListener('wheel',e=>{e.preventDefault();cameraRange=Math.max(10,Math.min(60,cameraRange+e.deltaY*.015));},{passive:false});
+function frame(now){const raw=now-previous,elapsed=Math.min(raw/1000,.1);previous=now;if(mode==='playing'){
+  if(raw>0){frameTimes.push(raw);if(frameTimes.length>1800)frameTimes.shift();}accumulator+=elapsed;
+  while(accumulator>=1/60){const beforeGround=state.player.grounded,beforeWarning=state.wind.warning;
+    step(state,{move:[Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft')),Number(keys.has('KeyS')||keys.has('ArrowDown'))-Number(keys.has('KeyW')||keys.has('ArrowUp'))],cam_yaw_deg:cameraYaw*180/Math.PI,jump:keys.has('Space'),dash:keys.has('ShiftLeft')||keys.has('ShiftRight'),pulse:keys.has('KeyF'),interact:keys.has('KeyE'),pause:false});accumulator-=1/60;
+    for(const event of state.events)audio.effect(event.name);if(beforeGround&&!state.player.grounded&&state.player.vy>0)audio.effect('jump');if(!beforeWarning&&state.wind.warning)audio.effect('wind_warning');
+    const seconds=Math.ceil(timeLeft(state));if(seconds<=10&&seconds!==lastCountdown){lastCountdown=seconds;audio.effect('countdown');}
+    if(['won','lost'].includes(state.status)){endNight();break;}
+  }
+}else if(mode==='paused'){
+  accumulator+=elapsed;while(accumulator>=1/60){step(state,{pause:false});accumulator-=1/60;}
+}
+if(renderer){renderer.setView(cameraYaw,cameraRange);renderer.render(state,now/1000);updateHUD();}requestAnimationFrame(frame);}
+menu();updateHUD();if(renderer)requestAnimationFrame(frame);

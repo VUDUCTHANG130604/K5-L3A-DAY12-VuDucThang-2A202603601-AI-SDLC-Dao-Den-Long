@@ -1,0 +1,42 @@
+✔ three-night campaign introduces each night, totals won scores, ends at dawn (2.8819ms)
+✔ loss stays on same night, adds no points; duplicate wins cannot double-credit (0.5388ms)
+✔ pause/resume and menu preserve progress; new journey resets score (0.238ms)
+✔ manifest matches actual tuning (2.5534ms)
+✔ seeded worlds reproduce positions and ids; origin is zero; five lamps (2.6556ms)
+✔ one second movement and persistent inputs match declared speed (0.8977ms)
+✔ camera yaw rotates movement; diagonals normalize; small vectors retain magnitude (0.7012ms)
+✔ round island stops movement at radius 24 without fall damage (1.0799ms)
+✔ jump rises, lands, and holding button never retriggers (0.6131ms)
+✔ pickup boundary is inclusive and ignores height; scores once (0.5421ms)
+✔ capacity limits pickups and leaves remaining motes active (0.4386ms)
+✔ deposit partial amount, press edge required, light only at full cost (0.8594ms)
+✔ deposit respects inclusive radius and remaining cost; distant lamp unchanged (0.8754ms)
+✔ scenario overrides by id, absent lamps remain; construction gives no points/events (0.3931ms)
+✔ explicit empty lists replace randoms, false flags disable defaults (0.3073ms)
+✔ shade chases by declared speed immediately (0.6981ms)
+✔ pulse spends cost, pushes, stuns for exact duration, scores; edge-triggered (1.2581ms)
+✔ pulse requires enough light; has cooldown and radius; stunned shades cannot hit (0.4796ms)
+✔ hit drops floor(ratio*carried), removes flame, invulnerability exactly declared ticks (0.3663ms)
+✔ safe lantern repels shade, protects player, boundary included (0.3456ms)
+✔ last flame emits no_flames once and freezes terminal state (0.394ms)
+✔ lighting last lamp wins with time/flame bonus, one terminal event (0.2899ms)
+✔ dawn uses scenario duration and exact tick arithmetic (0.2956ms)
+✔ JSONL snapshots start at 0; frames apply before step; end always last (0.7923ms)
+✔ events use k+1 and precede snapshot; stop on terminal before tick limit (0.3213ms)
+✔ same seed/scenario/input produces byte-identical JSONL including generated ids (8.6335ms)
+✔ bad scenario/input formats are rejected (1.0274ms)
+✔ CLI flags produce JSONL, malformed files exit 2, other errors nonzero (323.2737ms)
+✔ Phase 2 exact lamp layouts and spawn point counts (1.8603ms)
+✔ round boundaries and narrow bridge include their edges and exclude open sea (0.9956ms)
+✔ night 3 levels, half-annulus, ramps, and descending ground queries (0.449ms)
+✔ pads have exact launch values and only trigger at their elevation (0.2404ms)
+✔ vertical ledges block walking up, allow stepping down; bell tower is solid at level 2 (0.3276ms)
+✔ settings persist on reopening, clamp ranges, and tolerate corrupt/blocked storage (2.0089ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 515.7306

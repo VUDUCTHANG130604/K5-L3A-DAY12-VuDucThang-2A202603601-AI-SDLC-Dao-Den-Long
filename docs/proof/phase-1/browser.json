@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-11-20T08:30:33.649Z",
+  "browser": "Chrome headless / SwiftShader",
+  "checks": [
+    "WebGL shader compile/link with shadow map",
+    "intro rendered",
+    "start hides introduction",
+    "W moves player by more than two units",
+    "simulation timer advances",
+    "pause freezes timer",
+    "resume",
+    "restart resets HUD for five lamps",
+    "Space jumps",
+    "winning replay rendered with five lit lamps in isolated QA canvas",
+    "390px layout rendered"
+  ],
+  "runtimeErrors": [],
+  "playing": {
+    "time": "4:59",
+    "health": "♥ ♥ ♥ ",
+    "width": 1414
+  },
+  "manualPlaythrough": false
+}

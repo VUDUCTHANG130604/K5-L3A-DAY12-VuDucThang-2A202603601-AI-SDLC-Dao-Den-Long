@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-11-20T08:38:41.147Z",
+  "node": "v24.15.0",
+  "platform": "win32",
+  "arch": "x64",
+  "contract": "1.0",
+  "testsPassed": true,
+  "deterministicScenarios": {
+    "walk": {
+      "type": "end",
+      "ticks": 120,
+      "state": "playing",
+      "score": 0
+    },
+    "timeout": {
+      "type": "end",
+      "ticks": 18000,
+      "state": "lost",
+      "score": 0
+    },
+    "win": {
+      "type": "end",
+      "ticks": 2633,
+      "state": "won",
+      "score": 1652
+    }
+  },
+  "localContractChecks": true,
+  "instructorHiddenTestsRun": false
+}

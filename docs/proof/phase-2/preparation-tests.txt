@@ -1,0 +1,17 @@
+﻿✔ three-night campaign introduces each night, totals won scores, ends at dawn (2.7737ms)
+✔ loss stays on same night, adds no points; duplicate wins cannot double-credit (0.5944ms)
+✔ pause/resume and menu preserve progress; new journey resets score (0.2928ms)
+✔ Phase 2 exact lamp layouts and spawn point counts (2.5224ms)
+✔ round boundaries and narrow bridge include their edges and exclude open sea (1.247ms)
+✔ night 3 levels, half-annulus, ramps, and descending ground queries (0.4482ms)
+✔ pads have exact launch values and only trigger at their elevation (0.3113ms)
+✔ vertical ledges block walking up, allow stepping down; bell tower is solid at level 2 (0.3838ms)
+✔ settings persist on reopening, clamp ranges, and tolerate corrupt/blocked storage (2.398ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 127.602

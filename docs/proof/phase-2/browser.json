@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-11-20T09:07:10.502Z",
+  "contract": "1.1",
+  "browser": "Chrome headless, normal graphics path unless QA_SOFTWARE=1",
+  "graphics": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "checks": [
+    "menu and night introduction",
+    "movement",
+    "jump",
+    "dash",
+    "pause keeps tick advancing and sim_tick frozen",
+    "pause resume/retry/settings/menu",
+    "settings persist through reload",
+    "all three exact maps rendered in QA canvas",
+    "390px layout"
+  ],
+  "runtimeErrors": [],
+  "performance": {
+    "frames": 526,
+    "elapsedMs": 10016.699999999999,
+    "averageFps": 52.51230445156589,
+    "width": 1280,
+    "height": 720,
+    "requiredFps": 30,
+    "passed": true,
+    "sampleSeconds": 10
+  },
+  "audioManuallyListened": false,
+  "fullCampaignPlayedManually": false
+}
