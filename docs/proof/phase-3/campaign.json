@@ -1,0 +1,75 @@
+{
+  "source": "actual CLI scenario end scores; pre-lit test worlds",
+  "journey": [
+    {
+      "phase": "result",
+      "night": 1,
+      "wonScores": [
+        534,
+        null,
+        null
+      ],
+      "totalScore": 534,
+      "lastResult": {
+        "result": "won",
+        "score": 534
+      }
+    },
+    {
+      "phase": "result",
+      "night": 2,
+      "wonScores": [
+        534,
+        null,
+        null
+      ],
+      "totalScore": 534,
+      "lastResult": {
+        "result": "lost",
+        "score": 0
+      }
+    },
+    {
+      "phase": "result",
+      "night": 2,
+      "wonScores": [
+        534,
+        662,
+        null
+      ],
+      "totalScore": 1196,
+      "lastResult": {
+        "result": "won",
+        "score": 662
+      }
+    },
+    {
+      "phase": "result",
+      "night": 3,
+      "wonScores": [
+        534,
+        662,
+        790
+      ],
+      "totalScore": 1986,
+      "lastResult": {
+        "result": "won",
+        "score": 790
+      }
+    }
+  ],
+  "final": {
+    "phase": "dawn",
+    "night": 3,
+    "wonScores": [
+      534,
+      662,
+      790
+    ],
+    "totalScore": 1986,
+    "lastResult": {
+      "result": "won",
+      "score": 790
+    }
+  }
+}

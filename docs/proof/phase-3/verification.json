@@ -1,0 +1,307 @@
+{
+  "generatedAt": "2026-11-20T09:36:49.418Z",
+  "contract": "1.2",
+  "node": "v24.15.0",
+  "platform": "win32",
+  "testsPassed": true,
+  "results": {
+    "movement": {
+      "type": "end",
+      "ticks": 120,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 145
+    },
+    "dash": {
+      "type": "end",
+      "ticks": 12,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 145
+    },
+    "pause": {
+      "type": "end",
+      "ticks": 110,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 141
+    },
+    "fall": {
+      "type": "end",
+      "ticks": 61,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 141
+    },
+    "pad2": {
+      "type": "end",
+      "ticks": 84,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 152
+    },
+    "pad3": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 135
+    },
+    "ramp": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 158
+    },
+    "drifter": {
+      "type": "end",
+      "ticks": 241,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 136
+    },
+    "drifter-drop": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 131
+    },
+    "charm": {
+      "type": "end",
+      "ticks": 2701,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 183
+    },
+    "wind": {
+      "type": "end",
+      "ticks": 2100,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 189
+    },
+    "spawn": {
+      "type": "end",
+      "ticks": 3600,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 410
+    },
+    "fuel-expiry": {
+      "type": "end",
+      "ticks": 6001,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 201
+    },
+    "fuel-pause": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 139
+    },
+    "refuel": {
+      "type": "end",
+      "ticks": 1,
+      "state": "playing",
+      "score": 15,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 138
+    },
+    "relight": {
+      "type": "end",
+      "ticks": 1,
+      "state": "playing",
+      "score": 65,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 134
+    },
+    "relight-cycle": {
+      "type": "end",
+      "ticks": 12003,
+      "state": "playing",
+      "score": 280,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 267
+    },
+    "drain-stack": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 139
+    },
+    "drain-pulse": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 15,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 156
+    },
+    "safe-restore": {
+      "type": "end",
+      "ticks": 30,
+      "state": "playing",
+      "score": 10,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 184
+    },
+    "no-early-win": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 160
+    },
+    "dawn-extinguish": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 157
+    },
+    "dawn-final-relight": {
+      "type": "end",
+      "ticks": 1,
+      "state": "won",
+      "score": 663,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 132
+    },
+    "timeout-1": {
+      "type": "end",
+      "ticks": 14400,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 249
+    },
+    "win-1": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 534,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 136
+    },
+    "threshold-lost-1": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 129
+    },
+    "timeout-2": {
+      "type": "end",
+      "ticks": 16200,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 236
+    },
+    "win-2": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 662,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 129
+    },
+    "threshold-lost-2": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 125
+    },
+    "timeout-3": {
+      "type": "end",
+      "ticks": 18000,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 325
+    },
+    "win-3": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 790,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 139
+    },
+    "threshold-lost-3": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 133
+    },
+    "default-win": {
+      "type": "end",
+      "ticks": 14400,
+      "state": "won",
+      "score": 1102,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 559
+    }
+  },
+  "instructorHiddenTestsRun": false
+}

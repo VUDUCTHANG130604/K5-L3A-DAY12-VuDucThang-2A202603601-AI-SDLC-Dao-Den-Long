@@ -1,42 +1,35 @@
-# Test Contract v1.1 — triển khai
+# Test Contract v1.2 — semantics triển khai
 
-Nguồn: PRD-0 v1.0, bản ticket Phase2 ban đầu và [bảng chuẩn toàn văn được bổ sung](lab/TICKET-02-standard-addendum.md). Tuning chính xác tại `game.contract.json`, build so với `src/tuning.mjs` bằng deep equality.
+Nguồn: [TICKET-03](lab/TICKET-03.md), kế thừa Ticket02/PRD0 ở phần không bị thay. Manifestv1.2 tại `game.contract.json`, build kiểm tra deep equality với `src/tuning.mjs`. ADR mô hình fuel/dawn tại [ADR-0001](adr/0001-lantern-fuel-and-dawn.md); thay đổi breaking và test migration tại [CHANGELOG](../CHANGELOG.md).
 
-CLI từ gốc repo: `node scripts/headless.mjs --seed 12 --night 2 --scenario scenario.json --inputs inputs.json --ticks 19800 --out result.jsonl --snapshot-every 10`. Node20+, không GPU. Exit0 hợp lệ, exit2 JSON/schema sai, exit1 cờ/file/I/O sai. Các đầu vào v1.0 (motes dạng `[x,y,z]`, player.pos/carried/flames, lanterns cập nhật theo id, random_motes/shades) vẫn được nhận với tuning chuẩn mới.
+CLI từ repo: `node scripts/headless.mjs --seed 12 --night 3 --scenario scenario.json --inputs inputs.json --ticks 18000 --out result.jsonl --snapshot-every 10`. Node20+, khôngGPU. Exit0 hợp lệ kể cảlost/paused,2 JSON/schema sai,1 cờ/I/O sai. Fieldđầu vào v1.0–1.1 không bị thay tiếp tục được nhận.
 
-## Snapshot và input
+## Tick, input và output
 
-Snapshot0 sau dựng scenario, trước input; dựng không điểm/event. `step` k đọc frame tick k, ghi event tick k+1. `tick` luôn tăng ở mọi bước không terminal, `sim_tick` chỉ tăng khi active. Khi pause state=paused, timer/TTL/spawn/vận tốc gameplay đứng yên; `pause` rising edge đổi trạng thái. Resume thực hiện bước gameplay ngay tick resume theo thứ tự ticket. Input persistent, move mặc định[0,0], yaw0, jump/dash/interact/pulse/pause false; frame.tick tăng nghiêm ngặt. Hướng xoay camera đúng công thức v1.0.
+Snapshot0 sau dựng scenario, trướcinput; dựng khôngevent/điểm/success count. Bướck đọcframe.tick=k tạo event/state tickk+1. Input persistent, mặc địnhmove[0,0]/yaw0/nútfalse; tick frame tăng nghiêm ngặt; jump/dash/interact/pulse/pause kích hoạt cạnhfalse→true; move/yaw theo công thứcv1.0. Tick vẫn tăng khi paused, sim_tick/time/timers/TTL/fuel/drain/spawn đứng. Resume chạy bướcgameplay ngay tickresume. Không chạy sau won/lost.
 
-Snapshot mỗi N tick bắt đầu0, thêm snapshot cuối nếu nằm giữa mốc, sau cùng bắt buộc end. `state` playing/paused/won/lost. Vị trí và vel làm tròn3 chữ số, `-0` thành0. Root thêm night, wind{active,dir_deg}; player có pos, vel, grounded, flames, carried, invuln(boolean), dash_cd_s, pulse_cd_s, charm_s. Lanterns đủ5/6/7 đèn. Shades dùng đúng spawning/wander/chase/recoil/stunned. Motes bắt buộc gồm id,pos,kind,ttl_s: random ttl_s=null, dropped là số giây còn lại. Drifters có id,pos,state,stolen, giữ removed trong output để tham chiếu ID. Charms có id,available,respawn_s.
+Snapshot mỗiN tick bắt đầu0, thêm snapshotcuối nếu cần, luôn dòngend cuối. `state` playing/paused/won/lost; `time_left_s=max(0,scenarioDuration−sim_tick/60)`, mặc định240/270/300. Pos/vel round3decimal; fuel round1decimal, JSONnumeric có thể in100 thay100.0 nhưng cùng độ chính xác. Không sử dụng roundoutput trong logic.
 
-`time_left_s=max(0,scenario.time_left_s−sim_tick/60)`; mặc định thời lượng300/330/360. Không chạy sau terminal. `night_start` phát ở bước gameplay đầu tiên, không phát khi dựng scenario hoặc đứng paused từ đầu. Không thêm event âm thanh/hiệu ứng vào JSONL.
+Root có night/wind{active,dir_deg}. Player giữpos/vel/grounded/flames/carried/invuln(bool)/dash_cd_s/pulse_cd_s/charm_s và thêmcapacity. Lanterns đủ5/6/7, mỗiid/pos/lit/deposited/fuel/ever_lit/relit_count; unlitfuel0. Shades giữid/pos/state, state mới drain bên cạnh spawning/wander/chase/recoil/stunned. Motes luôn id/pos/kind(random/dropped)/ttl_s (randomnull, droppedseconds). Drifters id/pos/state/stolen, giữremoved để tham chiếuID. Charms id/available/respawn_s.
 
-## Scenario v1.1
+Các event cũ không bị thay giữ nguyên; lantern_lit data thêmrelightbool. Event mới refuel{lantern_id,amount,fuel}, lantern_out{lantern_id}, fuel_drain{lantern_id,shade_id,fuel}; fuel event cũng round1. `game_over` won/dawn_survived, lost/dawn hoặcno_flames; **không all_lit**. night_start ở bướcactive đầu tiên (không phảiconstruct). Không thêm eventvisual/audio/colorblind.
 
-- `player` nhận pos/carried/flames và invuln_ticks/dash_cd_ticks/pulse_cd_ticks/charm_ticks (integer≥0). Trạng thái grounded suy từ mặt đất dưới chân; mặc định vel0/facing+Z.
-- `shades` thay danh sách; mỗi phần tử có pos, id tùy chọn, state (mặc định chase), state_ticks_left. Stunned/recoil dùng thời gian đó; scenario bình thường có thể tương tác ngay bước1.
-- `drifters` thay danh sách; pos, id tùy chọn, state idle/chase/flee/removed, stolen≥0, state_ticks_left. Flee mặc định240tick, hướng ra xa Mây khi dựng.
-- `charms` thay danh sách; id, pos (có thể bỏ khi id trùng bùa mặc định), available, respawn_ticks hoặc respawn_s. Unavailable không chỉ định timer mặc định45s. Vị trí có trong state nội bộ để nhặt/render; snapshot tuân thủ trường contract yêu cầu.
-- `motes` hỗ trợ dạng v1.0, hoặc `{id?,pos,kind?,ttl_s?}` để test TTL. Không cho điểm khi dựng; dropped mặc định8s.
-- Các cờ random_motes/random_shades/random_drifters false tắt cả khởi tạo và lịch spawn tương ứng, chỉ giữ thực thể liệt kê. Danh sách tường minh thay danh sách đầu nhưng lịch còn chạy nếu không tắt cờ. wind_enabled false tắt gió.
-- Lanterns cập nhật theo L1…Ln, đèn không nhắc giữ nguyên. lit:true đặt deposited10; deposited10 cũng làm sáng. Schema sai/ID trùng/ID đèn lạ bị từ chối.
+## Scenario
 
-## Thứ tự và mốc thời gian
+- Player pos/carried/flames và invuln_ticks/dash_cd_ticks/pulse_cd_ticks/charm_ticks giữ nguyên; thêm successful_lights integer≥0. Capacity=min(20,10+2×count), carried phải≤capacity. Defaultcount0/vel0/facing+Z; grounded suy từ mặt đất. Scenario-lit không tăngcount.
+- Lanterns cập nhật theoL1…Ln, không nhắc giữmặcđịnh. Cho đặtpos/deposited/lit/fuel/ever_lit. Fuel finite0..100, round vềunit1/60. Littrue khôngfuel mặc định100 vàeverLittrue; unlitfuel0, relitCount0 khi dựng. Deposited giới hạncost hiện tại(10hoặc5); nếu không chỉđịnhlit màdeposited đủcost thìdựnglit, vẫn khôngđiểm/success. Littrue fuel0 đượcgiữđếnbước2 đầu đểcóout eventđúnglúcchạy, khôngpháquytắcdựngkhôngevent.
+- Shades thaylist: pos/id?/state?/state_ticks_left?, thêmtarget_lantern_id (null hoặcIDđèn tồn tại). Scenario defaultchase tương tác từbước1. Drain thiếuID tựchọnweak trong2m gầnnhất; khôngcótồntạitarget thìwander ởbước8. Stun/recoil dùngcounter đãcho.
+- Drifters list thaythế: pos/id?/state?/stolen?/state_ticks_left?; flee mặcđịnh240 vàhướngrờixaMây. Charms listthaythế: id/pos/available/respawn_ticks hoặcrespawn_s; unavailable khôngtimer mặcđịnh2700tick; cóthểbỏpos nếuIDbùamặcđịnh.
+- Motes nhận[x,y,z] cũ hoặc{id?,pos,kind?,ttl_s?}; dropped mặcđịnh8s. IDtrùng/counterâm/schemalỗi trả2. Randomflagsfalse tắtcảkhởitạovàlịchsinh, chỉgiữthựcthểliệtkê. Explicitlist thayinitiallist nhưnglịchvẫnchạynếukhôngtắtflag. wind_enabledfalse tắtgió.
 
-Theo đúng12 bước ticket: pause → timers → move/jump/dash/pad/wind/fall → pickup/charm → deposit → safe → pulse → move enemies → theft rồi hits theo ID → scheduled spawns → terminal → output. Mỗi timer dùng integer tick, giảm ở đầu bước trước hành động. Hiệu lực mới được đặt đủ số tick tại hành động; snapshot cùng tick thấy giá trị đầy đủ. Dash chạy đúng12 bước, cooldown bắt đầu90 tại kích hoạt; charm bỏ cooldown nhưng vẫn yêu cầu cạnh mới và không ngắt dash.
+## Thứ tự và trạng thái dầu
 
-Pulse khóa target bằng khoảng cách3D chân+0.8 tới tâm shade, stun120, push4m trong15 bước gồm bước kích hoạt. Recoil2m/60 bước sau hit. Thực thể scheduled được dựng ở cuối bước nên chỉ tương tác từ bước sau. Drop hit/theft cũng xuất hiện sau pickup nên không nhặt được cùng tick; TTL giảm từ bước sau. Fall chỉ hit một lần, p.respawnTicks ngăn pickup/contact trong60tick, không tạo đốm rơi từ số lost.
+12stageTicket02 đượcgiữ: pause → counters+fuel/drain/out → move/jump/dash/pad/wind/fall → pickup/charm → interact → safe → pulse → enemies → driftertheft rồishadehit → scheduledspawn → verdict → output. Counter integer giảm trướcaction; durationmới đầyđủtạiaction. Scheduledspawn ởcuối nênchỉtươngtáctừtick sau. Drop từhit/pulsereturn cũngsaupickup nênkhôngnhặtngay; TTLgiảmtừbướcsau.
 
-## Các quyết định ticket chưa quy định chi tiết
+`fuelUnits`0..6000, mỗiactiveburn1 cộng5/shadedrainhợp lệ. Drain counter riêngmỗishade, logmỗi60active ticks hútliêntục, freeze khi pause, resetkhirờidrain. Eventchứafuel sau tổngburn/drain; logởmốccùngtickcạntrướcout. Out resetlit/deposited/fuel, giữnguyênhistory. Newlight/relight đặt6000, cost10/5. Refuel tínhceil rawunits, clamp6000, khôngtăngcapacity; nearesteligible/ID chọnchunglit+unlit.
 
-- Chạy/dừng tức thời (nằm trong ≤0.1s). Jump tích phân semi-implicit Euler ở60Hz. Pad giữ velocity ngang riêng đến landing; dash tạm ghi đè rồi trả lại velocity pad; air dash giữ cả độ cao và vy trong12tick.
-- Spawn shade: bảng chuẩn chung hai con tick300 áp dụng cả3 Đêm, sau đó mỗi480/420/360tick. Scheduled spawning chỉ chiếm trạng thái tại tick sinh, tick sau có thể wander/chase. Wander dùng tốc độ chuẩn, heading tất định theo seed; phát hiện/bỏ đuổi XZ12/18. Không tìm đường toàn bản đồ; cản địa hình chặn bước đi. Không hồi sinh shade bị pulse vì chúng không chết.
-- Safe eject tuyến tính ra mép trong30 bước; không hit khi eject. Người chơi trong vùng sáng được bảo vệ khỏi shade; Gió Lạc bỏ qua safe/invuln. Safe tínhXZ theo contract. E tương tác cũng theoXZ, không thêm ngưỡng cao ngoài ticket.
-- Đom đóm dropped rải vành bằng PRNG seed, TTL8s, không bật điểm khi nhặt. Drifter trả đồ tại XZ của nó, Y là mặt đất (center−0.8), TTL8s, không rải vành.
-- Gió Lạc spawn dùng điểm sương/shadePoints; idle bay2m/s, chase/flee7; flee tự giữ hướng rời Mây, có thể bay khỏi đảo. Pulse idle không đổi trạng thái; pulse chase flee rỗng; pulse flee có đồ trả hết rồi đếm120.
-- Gió hướng độ từ+X về+Z; báo trước tại sim_tick1680+1800k, gió tại1800+1800k trong300bước. PRNG chọn hướng lúc báo để lá và âm thanh khớp.
-- Night3 vẫn xuất phát chân(0,0,0) theo contract nền; tầng cao chặn khi đi từ ngoài lên, không dịch chuyển spawn tự động. Renderer hiển thị Mây xuyên phần tầng che để không mất dấu khi ở dưới tầng giữa. Không thay tọa độ headless vì hình ảnh.
-- Điểm theo số đốm nạp, không nhặt; thưởng kết thúc chỉ won. no_flames ưu tiên all_lit, rồi dawn, đúng ticket. Campaign ngoài mô phỏng headless1Đêm, chỉ cộng các Đêm thắng và retry không cộng lặp.
+Safe lit&&units≥1800. Lowwander chọnweaklit gầnnhất/ID; khôngweak chọnunlit gầnnhất. Drain trong2m, chaseMây6m, dừngkhipulse/out/refuel≥30/raxa2m. Hếtstun vềwander một bước, perception thườngtừbướcsau. Safephụchồieject≤30tick, khôngdamagekhiđẩy. Pulse3D vẫnchuẩn, điểmchốttheostate trướcaction:15tổngnếudrain,5cònlại.
 
-Bộ test ẩn không có trong repo. Không coi fixture pre-lit hoặc ảnh canvas QA là bằng chứng người chơi đã hoàn thành campaign mặc định.
+Sau hết mọiupdate: no_flames trước, rồi khi dawn kiểmtra ceil(.6×total)lit; cònthờigianthìvẫnplaying dùlitđủ. Bonuswon=sum(50+floor(units/60))lit +50×flames, khôngthưởngthờigian. Điểmnạp/refuel5, first100, relight40. Scenario khôngthưởng; campaign chỉcộngĐêmthắng vàretrykhôngcộnglặp.
+
+Chi tiết khôngđổi (spawnshade300rồi480/420/360; wander/chase4/4.5; pad/dashphysics; droppedTTL; windwarning1680+1800k; GióLạc/Bùa) theoTicket02 vàcode/regression. Night3giữspawn(0,0,0), renderer cho thấyMây dưới tầngche; khôngdịchchuyểntọađộheadless vìhìnhảnh. Bộtestẩn chưađược cungcấp; khôngtuyênbốđãchạy.

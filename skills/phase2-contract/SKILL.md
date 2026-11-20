@@ -1,14 +1,16 @@
 ---
 name: phase2-contract
-description: Verify or modify Dao Den Long Phase 2 gameplay, JSONL contract v1.1, replay evidence and browser performance. Use for simulation or acceptance changes in this repository.
+description: Verify or modify Dao Den Long contract v1.2, fuel and dawn rules, unaffected Phase 2 regressions, deterministic replay evidence and browser performance.
 ---
 
-Read `docs/notes/phase-2.md` for the ticket's acceptance criteria and `docs/TEST-CONTRACT.md` for schema decisions. Keep `src/tuning.mjs` equal to `game.contract.json`; build rejects drift. Standard RGB albedos live in `web/palette.mjs`.
+Read `docs/notes/phase-3.md`, the fuel/dawn ADR and `CHANGELOG.md` for replacements; `docs/TEST-CONTRACT.md` covers current schema. Keep `src/tuning.mjs` equal to `game.contract.json`; build rejects drift. Standard RGB and accessible replacements live in `web/palette.mjs`.
 
 The fixed simulation counts `tick` even while paused; only active steps increment `simTick`. Inputs persist and action buttons use rising edges. Preserve the 12-stage order in `src/game.mjs`: notably timer decrement precedes movement, drifter theft precedes shade damage, and scheduled entities do not interact until the following step.
 
-Run `node scripts/verify.mjs` after gameplay changes. It executes tests, generates an ordinary-input default-world winning replay, runs feature scenarios through two separate CLI processes, and compares JSONL bytes. Proof belongs in `docs/proof/phase-2`; never overwrite historical Phase 1 evidence or edit generated reports to pass.
+Fuel is integer sixtieths, with burn and active drains at stage2 before interaction. Never use one-decimal output for thresholds or ceil refuel. Success only at dawn with ceil(.6*count) currently lit and health>0; no_flames wins precedence. Scenario-lit lamps do not grow capacity. A drain target earns15 total for pulse, not15+5.
 
-For visuals/menus, start `node scripts/serve.mjs`, run `node scripts/browser-smoke.mjs`, and inspect generated PNGs. Browser QA defaults to the normal GPU path at 1280×720. Its measured FPS must meet 30; software mode is a fallback and must be identified. A map rendered in an isolated QA canvas does not establish a manually completed campaign. Record unperformed manual audio, hidden tests and cross-platform checks honestly.
+Run `node scripts/verify.mjs` after gameplay changes. It executes tests, generates an ordinary-input default-world dawn-survival replay, runs feature scenarios through two separate CLI processes, and compares JSONL bytes. Proof belongs in `docs/proof/phase-3`; never overwrite historical Phase 1/2 evidence or edit generated reports to pass. Do not quietly skip old tests: keep unaffected tests and document replaced expectations in the ADR/changelog.
+
+For visuals/menus, start `node scripts/serve.mjs`, run `node scripts/browser-smoke.mjs`, and inspect generated PNGs. Check low-fuel1Hz brightness, collapsed/torn off lamps in monochrome and saved accessible palette. Browser QA defaults to normal GPU at1280×720; report measured FPS, software fallback and manual/hidden-test limits honestly. Isolated QA canvas scenes are visual fixtures, not manual campaign completions.
 
 Do not change standard tuning to rescue a replay. Improve the controller's ordinary inputs, or report the failed replay. Adding fixtures for isolated features is useful but does not turn a scenario-preconfigured win into a default-world completion.

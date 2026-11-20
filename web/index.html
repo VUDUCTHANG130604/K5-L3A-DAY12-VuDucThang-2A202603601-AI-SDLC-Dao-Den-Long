@@ -3,8 +3,9 @@
 <body>
 <canvas id="world" aria-label="Đảo Đèn Lồng 3D, WASD di chuyển, Space nhảy, Shift lướt"></canvas>
 <header><div class="brand"><span class="seal">灯</span><div><small>BA HÒN ĐẢO · MỘT BÌNH MINH</small><h1>Đảo Đèn Lồng</h1></div></div><button id="pause">Tạm dừng</button></header>
-<aside id="stats" aria-label="Trạng thái"><div class="vital"><small>NGỌN LỬA</small><strong id="health">♥ ♥ ♥</strong><small id="night">Đêm 1 · Đảo Bến</small></div><div class="clock"><small>TRƯỚC BÌNH MINH</small><strong id="time">5:00</strong></div><div class="progress"><small>ĐÈN ĐÃ THẮP</small><strong id="lamps">0 / 5</strong><span>Điểm <b id="score">0</b></span></div></aside>
+<aside id="stats" aria-label="Trạng thái"><div class="vital"><small>NGỌN LỬA</small><strong id="health">♥ ♥ ♥</strong><small id="night">Đêm 1 · Đảo Bến</small></div><div class="clock"><small>TRƯỚC BÌNH MINH</small><strong id="time">4:00</strong></div><div class="progress"><small>ĐÈN ĐÃ THẮP</small><strong id="lamps">0 / 5</strong><span>Điểm <b id="score">0</b></span></div></aside>
 <div id="wind" role="status"></div><div id="prompt" role="status" aria-live="polite"></div><div id="direction" hidden aria-label="Hướng tới đèn chưa sáng"><span id="arrow">↑</span><small id="distance"></small></div>
+<div id="fuel-labels" aria-label="Nhiên liệu từng đèn"></div>
 <div id="inventory"><small>ÁNH SÁNG ĐANG MANG <b id="flies">0 / 10</b></small><div id="slots" aria-label="Túi đom đóm"></div><small id="charm"></small></div>
 <div id="cooldowns"><span id="dash">SHIFT · Lướt</span><span id="pulse">F · Tỏa sáng</span></div>
 <footer><span><b>WASD</b> Đi · <b>SPACE</b> Nhảy · <b>SHIFT</b> Lướt · <b>E</b> Nạp đèn · <b>F</b> Tỏa sáng</span><span>Chuột phải kéo · Xoay / Lăn · Zoom</span><button id="restart">Chơi lại Đêm</button></footer>

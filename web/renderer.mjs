@@ -1,12 +1,12 @@
 // Procedural original models. No network assets or renderer-only gameplay rules.
 import {getMap,topHeight} from '/src/maps.mjs';
-import {C} from './palette.mjs';
+import {C,ACCESSIBLE_RIM} from './palette.mjs';
 const vertex=`attribute vec3 aPosition,aNormal,aColor;attribute float aMaterial;
 uniform mat4 uVP,uLightVP;uniform mat3 uRotation;uniform vec3 uPosition,uScale;
 varying vec3 vNormal,vWorld,vColor;varying float vMaterial;varying vec4 vShadow;
 void main(){vWorld=uRotation*(aPosition*uScale)+uPosition;vNormal=uRotation*(aNormal/uScale);vColor=aColor;vMaterial=aMaterial;vShadow=uLightVP*vec4(vWorld,1.);gl_Position=uVP*vec4(vWorld,1.);}`;
 const fragment=`precision highp float;
-uniform vec3 uColor,uEye,uLights[8];uniform float uGlow,uMaterial,uTime,uWarmth;uniform sampler2D uShadow;
+uniform vec3 uColor,uEye,uLights[8],uShadeRim;uniform float uGlow,uMaterial,uTime,uWarmth;uniform sampler2D uShadow;
 varying vec3 vNormal,vWorld,vColor;varying float vMaterial;varying vec4 vShadow;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
@@ -22,7 +22,7 @@ if(mat>3.5&&mat<4.5){base*=.88+.16*noise(vWorld.xy*95.);}
 vec3 eye=normalize(uEye-vWorld),key=normalize(vec3(-.6,1.,.4));float diffuse=max(dot(n,key),0.);vec3 illumination=vec3(.85,.9,1.)*uWarmth+vec3(.45,.48,.6)*diffuse*shadow(n);
 for(int i=0;i<8;i++){vec3 delta=uLights[i]-vWorld;float d=length(delta),enabled=step(-50.,uLights[i].y),att=enabled*5./(1.+d*d*.4);illumination+=vec3(1.,.702,.278)*att*(.3+.7*max(dot(n,normalize(delta)),0.));}
 vec3 color=base*illumination;
-if(mat>5.5){float edge=pow(1.-max(dot(n,eye),0.),3.);color+=vec3(.478431,.235294,1.)*edge*.35;}
+if(mat>5.5){float edge=pow(1.-max(dot(n,eye),0.),3.);color+=uShadeRim*edge*.35;}
 float spec=pow(max(dot(n,normalize(key+eye)),0.),mat>4.5?90.:28.);color+=spec*(mat>4.5?.48:.055)*shadow(n);
 if(mat>4.5&&mat<5.5){float wave=sin(vWorld.x*.8+uTime*.6)*sin(vWorld.z*.7-uTime*.4);color=mix(color,vec3(.13,.27,.32),pow(1.-max(dot(n,eye),0.),3.));color+=vec3(.06,.10,.10)*wave;}
 color=mix(color,base*1.5,uGlow);float fog=1.-exp(-pow(length(uEye-vWorld)*.01,2.));color=mix(color,vec3(.106,.137,.314),fog);color=color/(color+vec3(.6));gl_FragColor=vec4(pow(color,vec3(.85)),1.);}`;
@@ -46,6 +46,8 @@ function sphere(rows=16,segments=24){const profile=[];for(let i=0;i<=rows;i++){c
 function cube(){const d=[];for(const [n,u,v]of [[[1,0,0],[0,1,0],[0,0,1]],[[-1,0,0],[0,0,1],[0,1,0]],[[0,1,0],[0,0,1],[1,0,0]],[[0,-1,0],[1,0,0],[0,0,1]],[[0,0,1],[1,0,0],[0,1,0]],[[0,0,-1],[0,1,0],[1,0,0]]])for(const[a,b]of[[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]])d.push(...n.map((x,i)=>(x+u[i]*a+v[i]*b)*.5),...n);return d;}
 const shapes={sphere:sphere(),orb:sphere(6,8),foliage:sphere(8,12),cube:cube(),cylinder:lathe([[0,-.5],[1,-.5],[1,.5],[0,.5]]),hat:lathe([[0,-.04],[1,-.04],[.96,.01],[.05,.63],[0,.64]],48),
   coat:lathe([[0,0],[.45,0],[.33,.75],[.25,.85],[0,.85]]),paper:lathe([[0,-.6],[.3,-.6],[.55,-.45],[.65,0],[.55,.45],[.3,.6],[0,.6]],32),rock:lathe([[0,-.4],[.7,-.4],[1,0],[.8,.5],[.25,.7],[0,.7]],9)};
+// Missing staggered panels create visible geometric tears, also in monochrome.
+shapes.tornPaper=shapes.paper.filter((_,i)=>{const q=Math.floor(i/36),row=Math.floor(q/32),col=q%32;return !((row===2&&(col===8||col===24))||(row===3&&[7,8,9,23,24].includes(col)));});
 function batch(){const values=[];return{values,add(mesh,p,scale,color,yaw=0,material=0,tilt=0){const r=rotation(yaw,tilt),data=typeof mesh==='string'?shapes[mesh]:mesh;for(let i=0;i<data.length;i+=6){const v=transform(r,data.slice(i,i+3).map((x,k)=>x*scale[k])),n=normalize(transform(r,data.slice(i+3,i+6).map((x,k)=>x/scale[k])));values.push(v[0]+p[0],v[1]+p[1],v[2]+p[2],...n,...color,material);}}};}
 function makeEnvironment(night){const b=batch(),map=getMap(night),tri=[];
   const triangle=(a,c,d,n=[0,1,0])=>{for(const p of[a,c,d])tri.push(...p,...n);};
@@ -78,20 +80,20 @@ export function createRenderer(canvas){
   // Dithering corrupts RGBA-packed depth and causes checkerboard self-shadowing.
   gl.disable(gl.DITHER);
   function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
-  function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return{p,u:Object.fromEntries(['uVP','uLightVP','uRotation','uPosition','uScale','uColor','uGlow','uMaterial','uTime','uWarmth','uEye','uShadow','uLights[0]'].map(k=>[k,gl.getUniformLocation(p,k)])),a:Object.fromEntries(['aPosition','aNormal','aColor','aMaterial'].map(k=>[k,gl.getAttribLocation(p,k)]))};}
+  function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return{p,u:Object.fromEntries(['uVP','uLightVP','uRotation','uPosition','uScale','uColor','uGlow','uMaterial','uTime','uWarmth','uEye','uShadow','uShadeRim','uLights[0]'].map(k=>[k,gl.getUniformLocation(p,k)])),a:Object.fromEntries(['aPosition','aNormal','aColor','aMaterial'].map(k=>[k,gl.getAttribLocation(p,k)]))};}
   const lit=program(fragment),depth=program(depthFragment),meshes={};
   function upload(name,values){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);meshes[name]={buffer,count:values.length/10};}
   for(const [name,data]of Object.entries(shapes)){const b=batch();b.add(data,[0,0,0],[1,1,1],[1,1,1]);upload(name,b.values);}
   upload('lantern',makeLantern());
   const shadow=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,shadow);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1024,1024,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(const p of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,p,gl.NEAREST);for(const p of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE);
   const framebuffer=gl.createFramebuffer(),depthBuffer=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,depthBuffer);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,1024,1024);gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,shadow,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depthBuffer);if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw new Error('Không thể tạo bản đồ bóng đổ.');gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.enable(gl.DEPTH_TEST);
-  let lightVP,camera=[0,0],viewYaw=.24,range=22,lastNight=0,lastVP;
-  function execute(records,p,vp,time,lights,warmth){gl.useProgram(p.p);gl.uniformMatrix4fv(p.u.uVP,false,vp);gl.uniformMatrix4fv(p.u.uLightVP,false,lightVP);gl.uniform1f(p.u.uTime,time);gl.uniform1f(p.u.uWarmth,warmth);gl.uniform3fv(p.u['uLights[0]'],lights);gl.uniform1i(p.u.uShadow,0);
+  let lightVP,camera=[0,0],viewYaw=.24,range=22,lastNight=0,lastVP,colorblind=false;
+  function execute(records,p,vp,time,lights,warmth){gl.useProgram(p.p);gl.uniformMatrix4fv(p.u.uVP,false,vp);gl.uniformMatrix4fv(p.u.uLightVP,false,lightVP);gl.uniform1f(p.u.uTime,time);gl.uniform1f(p.u.uWarmth,warmth);gl.uniform3fv(p.u['uLights[0]'],lights);gl.uniform1i(p.u.uShadow,0);gl.uniform3fv(p.u.uShadeRim,colorblind?ACCESSIBLE_RIM:C.rim);
     for(const o of records){const m=meshes[o.mesh];gl.bindBuffer(gl.ARRAY_BUFFER,m.buffer);for(const[name,size,offset]of[['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=p.a[name];if(a>=0){gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}}
       gl.uniform3fv(p.u.uPosition,o.pos);gl.uniform3fv(p.u.uScale,o.scale);gl.uniformMatrix3fv(p.u.uRotation,false,rotation(o.yaw,o.tilt));gl.uniform3fv(p.u.uColor,o.color);gl.uniform1f(p.u.uMaterial,o.material);gl.uniform1f(p.u.uGlow,o.glow);gl.drawArrays(gl.TRIANGLES,0,m.count);
     }
   }
-  return{setView(yaw,zoom){viewYaw=yaw;range=Math.max(10,Math.min(60,zoom));},project(point){if(!lastVP)return null;const v=[point.x,point.y,point.z,1],p=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)p[r]+=lastVP[k*4+r]*v[k];return{x:p[0]/p[3],y:p[1]/p[3],visible:p[3]>0&&Math.abs(p[0])<p[3]&&Math.abs(p[1])<p[3]};},render(state,time){
+  return{setColorblind(enabled){colorblind=enabled===true;},setView(yaw,zoom){viewYaw=yaw;range=Math.max(10,Math.min(60,zoom));},project(point){if(!lastVP)return null;const v=[point.x,point.y,point.z,1],p=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)p[r]+=lastVP[k*4+r]*v[k];return{x:p[0]/p[3],y:p[1]/p[3],visible:p[3]>0&&Math.abs(p[0])<p[3]&&Math.abs(p[1])<p[3]};},render(state,time){
     if(lastNight!==state.night){if(!meshes[`map${state.night}`])upload(`map${state.night}`,makeEnvironment(state.night));lastNight=state.night;camera=[state.player.x,state.player.z];const cx=state.night===2?35:0;lightVP=multiply(ortho(state.night===2?85:62),lookAt([cx-35,55,30],[cx,0,0]));}
     const ratio=Math.min(devicePixelRatio||1,1),w=Math.round(canvas.clientWidth*ratio),h=Math.round(canvas.clientHeight*ratio);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     const p=state.player;camera[0]+=(p.x-camera[0])*.07;camera[1]+=(p.z-camera[1])*.07;
@@ -100,14 +102,16 @@ export function createRenderer(canvas){
     draw(`map${state.night}`,[0,0,0],[1,1,1],[1,1,1],0,-1);
     draw('cube',[0,-5.7,0],[600,.1,600],C.sea,0,5);
     const lights=[];
-    for(const l of state.lanterns){draw('lantern',[l.x,l.y,l.z],[1,1,1],[1,1,1],0,-1);draw('paper',[l.x,l.y+2.5,l.z],[.85,1,.85],l.lit?C.lamp:C.unlit,0,4,l.lit?.9:0);if(l.lit)draw('orb',[l.x,l.y+2.5,l.z],.22,C.core,0,0,1);lights.push(l.x,l.lit?l.y+2.4:-100,l.z);
+    for(const l of state.lanterns){const low=l.lit&&l.fuelUnits<1800,bright=!low||Math.floor(time*2)%2===0;
+      draw('lantern',[l.x,l.y,l.z],[1,1,1],[1,1,1],0,-1);draw(l.lit?'paper':'tornPaper',[l.x,l.y+2.5,l.z],[.85,l.lit?1:.8,.85],l.lit?C.lamp.map(c=>c*(bright?1:.35)):C.unlit,0,4,l.lit&&bright?.9:0);if(l.lit&&bright)draw('orb',[l.x,l.y+2.5,l.z+.5],.14,C.core,0,0,1);lights.push(l.x,l.lit&&bright?l.y+2.4:-100,l.z);
+      if(l.lit){const f=l.fuelUnits/6000,shift=(f-1)*.85;draw('cube',[l.x,l.y+4.2,l.z],[1.8,.18,.08],C.sky,viewYaw,0,.4);if(f>0)draw('cube',[l.x+Math.cos(viewYaw)*shift,l.y+4.2,l.z-Math.sin(viewYaw)*shift],[1.7*f,.12,.1],(low?(colorblind?[1,1,1]:C.danger):C.gold).map(c=>c*(bright?1:.2)),viewYaw,0,.9);}
       if(l.lit)for(let i=0;i<3;i++){const a=i*2.094+time*.4;draw('orb',[l.x+Math.cos(a)*1.1,2+Math.sin(time+i)*.5,l.z+Math.sin(a)*1.1],.045,[1,.7,.22],0,0,1);}
     }
     for(const[i,f]of state.fireflies.entries()){const y=f.y+.65+Math.sin(time*2+i)*.18;draw('orb',[f.x,y,f.z],.09,C.mote,0,0,1);draw('orb',[f.x,y-.1,f.z],[.13,.015,.13],C.halo,0,0,.7);}
     for(const c of state.charms)if(c.available){draw('cube',[c.x,c.y+1+Math.sin(time*2)*.15,c.z],[.5,.8,.06],C.gold,time);draw('cube',[c.x,c.y+1+Math.sin(time*2)*.15,c.z+.04],[.4,.68,.06],C.red,time);}
     for(const d of state.drifters)if(d.state!=='removed'){for(let i=0;i<5;i++)draw('foliage',[d.x+Math.sin(time*4+i)*.3,d.y+i*.08,d.z+i*.35],[.23,.12,.6],C.drifter);}
     if(state.wind.warning||state.wind.active)for(let i=0;i<24;i++){const a=state.wind.dir_deg*Math.PI/180,t=(time*.7+i*.7)%12-6;draw('cube',[p.x+Math.cos(a)*t+Math.sin(i)*5,p.y+1+i%5*.4,p.z+Math.sin(a)*t+Math.cos(i)*5],[.12,.025,.25],C.gold,time+i);}
-    for(const sh of state.shadows){const bob=Math.sin(time*3+sh.x)*.1,stunned=sh.state==='stunned';draw('sphere',[sh.x,sh.y+bob,sh.z],[.55,.85,.5],stunned?C.stunned:C.shade,0,6);for(let i=0;i<3;i++)draw('sphere',[sh.x+Math.sin(time*3+i)*.2,sh.y-.62,sh.z+i*.25],[.16,.1,.4],C.shade);const angle=Math.atan2(p.x-sh.x,p.z-sh.z);for(const side of[-1,1]){const ox=side*.17,oz=.43;draw('sphere',[sh.x+ox*Math.cos(angle)+oz*Math.sin(angle),sh.y+.25+bob,sh.z-ox*Math.sin(angle)+oz*Math.cos(angle)],[.075,.09,.045],stunned?[.5,.7,1]:C.rim,angle,0,1);}}
+    for(const sh of state.shadows){const bob=Math.sin(time*3+sh.x)*.1,stunned=sh.state==='stunned';draw('sphere',[sh.x,sh.y+bob,sh.z],[.55,.85,.5],stunned?C.stunned:C.shade,0,6);for(let i=0;i<3;i++)draw('sphere',[sh.x+Math.sin(time*3+i)*.2,sh.y-.62,sh.z+i*.25],[.16,.1,.4],C.shade);const angle=Math.atan2(p.x-sh.x,p.z-sh.z);for(const side of[-1,1]){const ox=side*.17,oz=.43;draw('sphere',[sh.x+ox*Math.cos(angle)+oz*Math.sin(angle),sh.y+.25+bob,sh.z-ox*Math.sin(angle)+oz*Math.cos(angle)],[.075,.09,.045],colorblind?ACCESSIBLE_RIM:C.rim,angle,0,1);}}
     // Mây: coat, sleeves, articulated limbs, sandals, face, woven conical hat.
     const characterStart=records.length;
     if(p.invulnerable<=0||Math.floor(time*12)%2===0){const yaw=p.facing,c=Math.cos(yaw),s=Math.sin(yaw),walk=p.moving?Math.sin(state.tick*.22):0,py=p.y??0;
