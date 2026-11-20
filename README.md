@@ -1,57 +1,58 @@
-# Đảo Đèn Lồng — Phase 3 · Đèn cạn dầu
+# Đảo Đèn Lồng · v1.0.0
 
-Game3D WebGL qua **Đảo Bến → Đảo Cau → Đảo Chuông**. Mục tiêu mới là **sống tới bình minh và còn đủ đèn sáng**, thay cho thắng sớm khi thắp hết. Đèn cạn dầu có thể tắt, Bóng Mực hút dầu từ đèn yếu; Mây phải gom đom đóm, châm dầu và thắp lại.
+Game 3D WebGL: Mây gom đom đóm, thắp và châm dầu để giữ **3/5 · 4/6 · 5/7 đèn** sáng tới bình minh qua ba Đêm. Contract **1.3**, logic cố định 60 Hz dùng chung web/headless.
 
-Contract hiện tại **v1.2**; web và headless dùng chung logic60Hz. [ADR đổi stateđèn và luật thắng](docs/adr/0001-lantern-fuel-and-dawn.md), [changelog breaking changes/test migrations](CHANGELOG.md), [spec và acceptance criteria](docs/notes/phase-3.md), [bằng chứng](docs/proof/phase-3/README.md).
+![Chơi thật ở 1280×720](docs/proof/phase-4/gameplay.png)
 
-![Đèn sáng, tắt và yếu](docs/proof/phase-3/fuel-states-normal.png)
+## Cài đặt
 
-## Chạy game
+Cần **Node.js 22+**, trình duyệt WebGL, bàn phím/chuột. Không cần npm install, CDN hay mạng khi chơi. Đã kiểm tra Windows 11 / Node24 / Chrome157 / Intel Iris Xe; chưa thử trực tiếp macOS/Linux.
 
-Cần **Node.js20+**, WebGL và bàn phím. Không cài dependency, không CDN. Hai lệnh từ repo:
+Từ máy có Git và Node, tối đa ba lệnh:
 
 ```sh
-node scripts/build.mjs
+git clone https://github.com/VUDUCTHANG130604/K5-L3A-DAY12-VuDucThang-2A202603601-AI-SDLC-Dao-Den-Long.git
+cd K5-L3A-DAY12-VuDucThang-2A202603601-AI-SDLC-Dao-Den-Long
 node scripts/serve.mjs
 ```
 
-Mở **http://localhost:3000** → Hành trình mới → Bắt đầu Đêm. Thắng chuyểnĐêm, thua retry cùngĐêm; thắngĐêm3 hiện Bình Minh với tổng điểm cácĐêm thắng. Mất focus tựpause. Chưa có điều khiển cảm ứng.
+Mở **http://localhost:3000**. Với ZIP Release: giải nén, vào `dao-den-long-v1.0.0`, chạy lệnh cuối. Gói cần Node. Dừng bằng Ctrl+C; biến `PORT` đổi cổng; server mặc định chỉ nghe loopback. Chưa hỗ trợ cảm ứng.
 
-| Điều khiển | Thao tác |
+| Mặc định | Hành động |
 | --- | --- |
-| WASD / mũi tên | Di chuyển theo camera, kể cả trên không |
+| WASD / mũi tên | Di chuyển theo camera |
 | Space / Shift | Nhảy / lướt |
-| E | Nạp vào đèn tắt hoặc châm dầu đèn sáng gần nhất nhận được |
-| F | Tỏa sáng, xua Gió Lạc/choáng và đẩy Bóng Mực |
-| Chuột phải kéo / lăn | Xoay camera / zoom |
-| Esc / P | Pause: tiếp tục, retry, cài đặt, menu |
+| E / F | Nạp hoặc châm dầu / Tỏa Sáng |
+| Esc / P | Tạm dừng |
+| Kéo chuột phải / lăn | Xoay / zoom |
 
-Đèn mới cần **10** đốm; đèn từng sáng thắp lại cần **5**. Mỗi lần thắp đặt **100dầu**, hao **1/s**; mỗi đốm châm thêm10, clamp100. Dưới30dầu mất safe6m và nháy1Hz. Bóng Mực wander đến đèn yếu hút5/s/con; pulse chặn chúng. Đèn cạn tắt và mất tiến độ nạp, nhưng nhớ từng sáng. Túi tăng **10→20**, thêm2 mỗi lần thắp thành công, cả thắp lại; không tăng do refuel.
+Cài đặt cho đổi cả 9 phím, báo trùng, khôi phục mặc định; lưu âm lượng, độ nhạy, màu dễ phân biệt, giảm chuyển động và chữ lớn ×1.25. Chữ tối thiểu 18 px ở 1280×720. Có chỉ báo Bóng Mực xuất hiện kèm hướng, gió sắp thổi, 10 giây cuối và dầu thấp. Giảm chuyển động bỏ hiệu ứng trang trí; cảnh báo dầu 1 Hz vẫn giữ.
 
-Thời lượng **240/270/300s**. Bình minh phải còn sống và có **3/5 · 4/6 · 5/7** đèn sáng. Hết Ngọn Lửa luôn thua, kể cả tick cuối. Các cơ chế chuẩn Phase2 (chạy6, dash14/0.2s/1.5s, nhảy7/gravity−20, cầu/pad/tầng, Gió Lạc, Bùa Gió, rơi đảo) được giữ.
-
-Trong Cài đặt, bật **Bảng màu dễ phân biệt**: viền/mắt shadecyan, cảnh báo trắng+⚠. Đèn tắt thân giấy xẹp20% và rách nên phân biệt được trong grayscale. Volume, sensitivity và lựa chọn màu được lưu qua lần mở lại; save cũ mặc định mùmàufalse.
-
-## Điểm v1.2
-
-Nạp/thắp lại/refuel **+5/đốm**, thắp đầu **+100**, thắp lại **+40**. Pulse **+5/shade**, hoặc **tổng+15** nếu nó đang hút dầu. Khi thắng bình minh: mỗi đèn còn sáng **+50+floor(dầu)**, mỗi Ngọn Lửa **+50**. **Bỏ thưởng thời gian**. Chỉ điểm các Đêm thắng vào tổng, retry không cộng lặp.
-
-## Kiểm chứng và headless
+Sau thua hoặc thắng Đêm3, nhập tên ASCII 3–12 ký tự `[A-Za-z0-9_]`. Bảng xếp hạng giữ top10 tổng điểm các Đêm **đã thắng**, điểm giảm dần rồi thời điểm sớm. Lưu ở `.data/leaderboard.json`, đổi nơi bằng `DAO_DATA_DIR`. Sao lưu thư mục này khi thay bản. Không mở trực tiếp HTML vì lưu đĩa cần server Node.
 
 ```sh
-node scripts/headless.mjs --seed 12 --night 1 --inputs tests/scenarios/phase3-win.inputs.json --ticks 14400 --out dawn.jsonl
+node scripts/serve.mjs --export-leaderboard out.json
 ```
 
-Replay này từ thế giới mặc định, chỉ input thông thường: sống14400tick, **3đèn/2NgọnLửa/1102điểm**. Không chỉnh fuel/time/health để thắng. Xem [game.contract.json](game.contract.json) và [schema/semantics](docs/TEST-CONTRACT.md). CLI nhậnnight1/2/3, scenario, inputs, snapshot-every; khôngGPU/mạng/cửa sổ; hợp lệ exit0 kể cả thua, schema sai2, lỗi vận hành1.
+## Kiểm chứng
 
-**`node scripts/verify.mjs`** chạy unit/regression, tạo replay mới, chạy mỗi fixture qua2processCLI so từngbyte JSONL, fulltimeout3Đêm và campaign từ kết quả CLI. Output hiện tại ở `docs/proof/phase-3`; không ghi đè proofPhase1/2. Không skip âm thầm test sai; lý do thay kỳ vọng nằm trong changelog.
+```sh
+node scripts/verify.mjs
+node scripts/browser-smoke.mjs
+node scripts/headless.mjs --seed 12 --night 1 --inputs tests/scenarios/phase3-win.inputs.json --ticks 14400 --out dawn.jsonl
+node scripts/bench.mjs --seed 42 --duration 30 --out bench.json
+node --expose-gc --max-semi-space-size=1 scripts/soak.mjs --seed 7 --nights 10 --out soak.json
+node scripts/package.mjs
+```
 
-BrowserQA: mở server rồi **`node scripts/browser-smoke.mjs`** (Node22+, Chrome/Chromium; có thể thêm đường dẫn executable). Chạy GPU thường1280×720, đoFPS thật, kiểm tra pause/tick, settings/reload, pixelnháy1Hz, ảnh fuelstates/grayscale. Giá trịGPU/FPS/time nằm trong `browser.json`; không suy ra hiệu năng mọi máy. `QA_SOFTWARE=1` chỉ là fallback có gắn nhãn.
+Verify chạy78 test và33 fixture qua hai process, so từng byte và toàn bộ JSONL với Phase3. Replay mặc định thắng bình minh ở14400tick,1102điểm. Browser QA tự mở server tạm, cần Chrome (hoặc truyền đường dẫn executable), kiểm tra đổi phím, reload, chữ, thua bằng input, lưu điểm và export. Chưa có test ẩn giảng viên để chạy.
 
-## Sáng tạo của tôi và giới hạn
+Bench cần Chrome/Chromium; đặt `CHROME_BIN` nếu không tự tìm được. Cửa sổ không toàn màn hình, viewport1280×720, yêu cầu tắt vsync bằng `--disable-frame-rate-limit --disable-gpu-vsync`; driver/compositor có thể vẫn giới hạn. Warmup3s rồi đo đúng thời lượng:200 shade wander,100 đom đóm,L1–L3 dầu100, ánh sáng/shadow thật. `peak_mem_mb: null` vì web tách nhiều process, không có API RSS toàn bộ cây trình duyệt tin cậy. `load_ms` từ process Node tới khung đầu hoàn tất GL. `BENCH_HEADLESS=1` chỉ dành chẩn đoán.
 
-Giữ Mây đội nón lá treo đèn, tay chân chuyển động, nan đèn, cảnh vật procedural, shadowmap/ánh sáng cục bộ, lá báo gió và WebAudio tổng hợp. Hình ảnh điều chỉnh theo luật dầu, giấy rách/xẹp và blink; hiệu ứng và chế độ màu không đổi headless. Bản đồ chuẩn3Đêm, audio/settings và camera vẫn được giữ.
+Máy tham khảo: **125,4FPS**, 1% thấp nhất **66,6FPS**, tải **1189,6ms**. Máy giảng viên mới quyết định đạt ngưỡng. Soak dùng seed7+i với i bắt đầu0, input độc lập mỗi Đêm, cùng process, không giữ lịch sử. Cờ V8 giới hạn young heap và GC tại reset để so RSS; không tăng baseline giả. Kết quả:0crash,RSS tăng khoảng6%, giới hạn20%.
 
-Harness: [AGENTS.md](AGENTS.md), [skill kiểm chứng](skills/phase2-contract/SKILL.md), scripts/tests và CIUbuntu. Tài liệu/code/bằng chứngPhase2 giữ ở tag `phase-2`; Phase3 dùng commit/tag riêng. [Nguồn](CREDITS.md), [giấy phép mã mới](LICENSE).
+Gói: `dist/dao-den-long-v1.0.0.zip`, kèm `SHA256SUMS.txt`; cần PowerShell Compress-Archive trên Windows hoặc zip trên Linux/macOS. [Video](docs/demo/demo.mp4), [bằng chứng](docs/proof/phase-4/README.md), [spec và AC](docs/notes/phase-4.md), [retro](docs/RETROSPECTIVE.md), [contract](docs/TEST-CONTRACT.md), [changelog](CHANGELOG.md), [credits](CREDITS.md), [license](LICENSE).
 
-Đã kiểm tra Windows/Chrome; chưa có bộ chấmẩnPhase1–3, đánh giá độc lập/nghe thử audio/fullcampaign chơi tay hoặc chạy trực tiếp macOS/Linux. Fixturespre-lit và canvasQA được ghi rõ, không giả thành hoàn thành mặc định. Kết quả CI chỉ xác nhận khi có runGitHub thực tế.
+## Luật và lịch sử
+
+Giữ luật Phase3: dầu100 hao1/s, dưới30 mất vùng an toàn; Bóng Mực hút5/s/con, thắp lại5đốm, túi tăng tới20, xét thắng ở bình minh240/270/300s. [ADR](docs/adr/0001-lantern-fuel-and-dawn.md). Phase4 giữ nguyên đầu ra gameplay. Proof cũ giữ nguyên. Phase1 không có tag riêng trong lịch sử hiện hữu; không tạo ngược một tag giả.

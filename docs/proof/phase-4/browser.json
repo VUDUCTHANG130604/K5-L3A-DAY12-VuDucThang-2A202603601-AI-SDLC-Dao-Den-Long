@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-11-20T10:06:34.164Z",
+  "contract": "1.3",
+  "browser": "Chrome headless, normal graphics path unless QA_SOFTWARE=1",
+  "graphics": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "checks": [
+    "menu and night introduction",
+    "movement",
+    "jump",
+    "dash",
+    "pause keeps tick advancing and sim_tick frozen",
+    "pause resume/retry/settings/menu",
+    "volume/sensitivity/accessible palette persist through reload",
+    "accessible warning color is white",
+    "geometric torn and compressed unlit lanterns rendered in monochrome",
+    "low fuel bar pixel brightness repeats at1Hz",
+    "all three exact maps rendered in QA canvas",
+    "390px layout"
+  ],
+  "fuelBlink": {
+    "brightRgba": [
+      189,
+      188,
+      188,
+      255
+    ],
+    "dimRgba": [
+      96,
+      96,
+      97,
+      255
+    ],
+    "periodSeconds": 1
+  },
+  "runtimeErrors": [],
+  "performance": {
+    "frames": 600,
+    "elapsedMs": 9999.9,
+    "averageFps": 60.00060000600006,
+    "width": 1280,
+    "height": 720,
+    "requiredFps": 30,
+    "passed": true,
+    "sampleSeconds": 10
+  },
+  "audioManuallyListened": false,
+  "fullCampaignPlayedManually": false
+}

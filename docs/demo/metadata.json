@@ -1,0 +1,8 @@
+{
+  "recordedAt": "2026-11-20T10:10:18.990Z",
+  "frames": 258,
+  "fps": 6,
+  "duration_s": 43,
+  "source": "Actual Chrome CDP JPEG frames; live ordinary keyboard inputs; actual test/replay commands; separate saved benchmark",
+  "audio": false
+}

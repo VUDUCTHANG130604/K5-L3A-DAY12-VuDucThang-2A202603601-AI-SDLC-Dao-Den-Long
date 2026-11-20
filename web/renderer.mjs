@@ -2,12 +2,15 @@
 import {getMap,topHeight} from '/src/maps.mjs';
 import {C,ACCESSIBLE_RIM} from './palette.mjs';
 const vertex=`attribute vec3 aPosition,aNormal,aColor;attribute float aMaterial;
-uniform mat4 uVP,uLightVP;uniform mat3 uRotation;uniform vec3 uPosition,uScale;
-varying vec3 vNormal,vWorld,vColor;varying float vMaterial;varying vec4 vShadow;
-void main(){vWorld=uRotation*(aPosition*uScale)+uPosition;vNormal=uRotation*(aNormal/uScale);vColor=aColor;vMaterial=aMaterial;vShadow=uLightVP*vec4(vWorld,1.);gl_Position=uVP*vec4(vWorld,1.);}`;
+attribute vec4 iPositionGlow,iScaleMat,iColorYaw;attribute float iTilt;
+uniform mat4 uVP,uLightVP;uniform mat3 uRotation;uniform vec3 uPosition,uScale;uniform float uInstanced,uGlow;
+varying vec3 vNormal,vWorld,vColor;varying float vMaterial,vGlow;varying vec4 vShadow;
+void main(){vec3 pos=uPosition,scale=uScale;mat3 r=uRotation;vColor=aColor;vMaterial=aMaterial;vGlow=uGlow;
+if(uInstanced>.5){pos=iPositionGlow.xyz;scale=iScaleMat.xyz;float c=cos(iColorYaw.w),s=sin(iColorYaw.w),a=cos(iTilt),b=sin(iTilt);r=mat3(c,0.,-s,s*b,a,c*b,s*a,-b,c*a);vColor*=iColorYaw.xyz;vMaterial=iScaleMat.w>=0.?iScaleMat.w:aMaterial;vGlow=iPositionGlow.w;}
+vWorld=r*(aPosition*scale)+pos;vNormal=r*(aNormal/scale);vShadow=uLightVP*vec4(vWorld,1.);gl_Position=uVP*vec4(vWorld,1.);}`;
 const fragment=`precision highp float;
 uniform vec3 uColor,uEye,uLights[8],uShadeRim;uniform float uGlow,uMaterial,uTime,uWarmth;uniform sampler2D uShadow;
-varying vec3 vNormal,vWorld,vColor;varying float vMaterial;varying vec4 vShadow;
+varying vec3 vNormal,vWorld,vColor;varying float vMaterial,vGlow;varying vec4 vShadow;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
 float unpackDepth(vec4 c){return dot(c,vec4(1./16777216.,1./65536.,1./256.,1.))*(255./256.);}
@@ -25,7 +28,7 @@ vec3 color=base*illumination;
 if(mat>5.5){float edge=pow(1.-max(dot(n,eye),0.),3.);color+=uShadeRim*edge*.35;}
 float spec=pow(max(dot(n,normalize(key+eye)),0.),mat>4.5?90.:28.);color+=spec*(mat>4.5?.48:.055)*shadow(n);
 if(mat>4.5&&mat<5.5){float wave=sin(vWorld.x*.8+uTime*.6)*sin(vWorld.z*.7-uTime*.4);color=mix(color,vec3(.13,.27,.32),pow(1.-max(dot(n,eye),0.),3.));color+=vec3(.06,.10,.10)*wave;}
-color=mix(color,base*1.5,uGlow);float fog=1.-exp(-pow(length(uEye-vWorld)*.01,2.));color=mix(color,vec3(.106,.137,.314),fog);color=color/(color+vec3(.6));gl_FragColor=vec4(pow(color,vec3(.85)),1.);}`;
+color=mix(color,base*1.5,vGlow);float fog=1.-exp(-pow(length(uEye-vWorld)*.01,2.));color=mix(color,vec3(.106,.137,.314),fog);color=color/(color+vec3(.6));gl_FragColor=vec4(pow(color,vec3(.85)),1.);}`;
 const depthFragment=`precision highp float;void main(){vec4 c=fract(gl_FragCoord.z*vec4(16777216.,65536.,256.,1.));c-=c.xxyz*vec4(0.,1./256.,1./256.,1./256.);gl_FragColor=c*(256./255.);}`;
 function multiply(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o;}
 const normalize=v=>{const n=Math.hypot(...v)||1;return v.map(x=>x/n);};
@@ -80,41 +83,55 @@ export function createRenderer(canvas){
   // Dithering corrupts RGBA-packed depth and causes checkerboard self-shadowing.
   gl.disable(gl.DITHER);
   function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
-  function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return{p,u:Object.fromEntries(['uVP','uLightVP','uRotation','uPosition','uScale','uColor','uGlow','uMaterial','uTime','uWarmth','uEye','uShadow','uShadeRim','uLights[0]'].map(k=>[k,gl.getUniformLocation(p,k)])),a:Object.fromEntries(['aPosition','aNormal','aColor','aMaterial'].map(k=>[k,gl.getAttribLocation(p,k)]))};}
+  function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return{p,u:Object.fromEntries(['uVP','uLightVP','uRotation','uPosition','uScale','uColor','uGlow','uMaterial','uTime','uWarmth','uEye','uShadow','uShadeRim','uInstanced','uLights[0]'].map(k=>[k,gl.getUniformLocation(p,k)])),a:Object.fromEntries(['aPosition','aNormal','aColor','aMaterial','iPositionGlow','iScaleMat','iColorYaw','iTilt'].map(k=>[k,gl.getAttribLocation(p,k)]))};}
   const lit=program(fragment),depth=program(depthFragment),meshes={};
   function upload(name,values){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);meshes[name]={buffer,count:values.length/10};}
   for(const [name,data]of Object.entries(shapes)){const b=batch();b.add(data,[0,0,0],[1,1,1],[1,1,1]);upload(name,b.values);}
   upload('lantern',makeLantern());
   const shadow=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,shadow);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1024,1024,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(const p of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,p,gl.NEAREST);for(const p of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE);
   const framebuffer=gl.createFramebuffer(),depthBuffer=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,depthBuffer);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,1024,1024);gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,shadow,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depthBuffer);if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw new Error('Không thể tạo bản đồ bóng đổ.');gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.enable(gl.DEPTH_TEST);
-  let lightVP,camera=[0,0],viewYaw=.24,range=22,lastNight=0,lastVP,colorblind=false;
+  const instancing=gl.getExtension('ANGLE_instanced_arrays'),instanceCache=new Map();
+  const recordPool=[],frameRecords=[];
+  let lightVP,camera=[0,0],viewYaw=.24,range=22,lastNight=0,lastVP,colorblind=false,reducedMotion=false,cameraOverride=null;
   function execute(records,p,vp,time,lights,warmth){gl.useProgram(p.p);gl.uniformMatrix4fv(p.u.uVP,false,vp);gl.uniformMatrix4fv(p.u.uLightVP,false,lightVP);gl.uniform1f(p.u.uTime,time);gl.uniform1f(p.u.uWarmth,warmth);gl.uniform3fv(p.u['uLights[0]'],lights);gl.uniform1i(p.u.uShadow,0);gl.uniform3fv(p.u.uShadeRim,colorblind?ACCESSIBLE_RIM:C.rim);
+    gl.uniform1f(p.u.uInstanced,instancing?1:0);
+    if(instancing){
+      const groups=new Map();for(const record of records){const list=groups.get(record.mesh)??[];list.push(record);groups.set(record.mesh,list);}
+      gl.uniform3fv(p.u.uColor,[1,1,1]);gl.uniform1f(p.u.uMaterial,-1);
+      for(const[name,list]of groups){const mesh=meshes[name];gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buffer);for(const[key,size,offset]of[['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=p.a[key];if(a>=0){gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);instancing.vertexAttribDivisorANGLE(a,0);}}
+        const cacheKey=`${name}:${p===depth?'depth':'lit'}`;let cache=instanceCache.get(cacheKey);if(!cache||cache.capacity<list.length){const capacity=2**Math.ceil(Math.log2(Math.max(16,list.length)));if(cache)gl.deleteBuffer(cache.buffer);cache={capacity,data:new Float32Array(capacity*13),buffer:gl.createBuffer()};instanceCache.set(cacheKey,cache);gl.bindBuffer(gl.ARRAY_BUFFER,cache.buffer);gl.bufferData(gl.ARRAY_BUFFER,capacity*52,gl.DYNAMIC_DRAW);}
+        for(let i=0;i<list.length;i++){const o=list[i],k=i*13;cache.data.set(o.pos,k);cache.data[k+3]=o.glow;cache.data.set(o.scale,k+4);cache.data[k+7]=o.material;cache.data.set(o.color,k+8);cache.data[k+11]=o.yaw;cache.data[k+12]=o.tilt;}
+        gl.bindBuffer(gl.ARRAY_BUFFER,cache.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,cache.data.subarray(0,list.length*13));for(const[key,size,offset]of[['iPositionGlow',4,0],['iScaleMat',4,16],['iColorYaw',4,32],['iTilt',1,48]]){const a=p.a[key];if(a>=0){gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,52,offset);instancing.vertexAttribDivisorANGLE(a,1);}}
+        instancing.drawArraysInstancedANGLE(gl.TRIANGLES,0,mesh.count,list.length);
+      }return;
+    }
     for(const o of records){const m=meshes[o.mesh];gl.bindBuffer(gl.ARRAY_BUFFER,m.buffer);for(const[name,size,offset]of[['aPosition',3,0],['aNormal',3,12],['aColor',3,24],['aMaterial',1,36]]){const a=p.a[name];if(a>=0){gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,40,offset);}}
       gl.uniform3fv(p.u.uPosition,o.pos);gl.uniform3fv(p.u.uScale,o.scale);gl.uniformMatrix3fv(p.u.uRotation,false,rotation(o.yaw,o.tilt));gl.uniform3fv(p.u.uColor,o.color);gl.uniform1f(p.u.uMaterial,o.material);gl.uniform1f(p.u.uGlow,o.glow);gl.drawArrays(gl.TRIANGLES,0,m.count);
     }
   }
-  return{setColorblind(enabled){colorblind=enabled===true;},setView(yaw,zoom){viewYaw=yaw;range=Math.max(10,Math.min(60,zoom));},project(point){if(!lastVP)return null;const v=[point.x,point.y,point.z,1],p=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)p[r]+=lastVP[k*4+r]*v[k];return{x:p[0]/p[3],y:p[1]/p[3],visible:p[3]>0&&Math.abs(p[0])<p[3]&&Math.abs(p[1])<p[3]};},render(state,time){
+  return{setColorblind(enabled){colorblind=enabled===true;},setReducedMotion(enabled){reducedMotion=enabled===true;},setCamera(eye,target){cameraOverride=eye?{eye,target}:null;},info(){const ext=gl.getExtension('WEBGL_debug_renderer_info');return`WebGL1 ${instancing?'ANGLE instancing':'draw fallback'} / ${ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)}`;},finish(){gl.finish();},setView(yaw,zoom){viewYaw=yaw;range=Math.max(10,Math.min(60,zoom));},project(point){if(!lastVP)return null;const v=[point.x,point.y,point.z,1],p=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)p[r]+=lastVP[k*4+r]*v[k];return{x:p[0]/p[3],y:p[1]/p[3],behind:p[3]<=0,visible:p[3]>0&&Math.abs(p[0])<p[3]&&Math.abs(p[1])<p[3]};},render(state,time){
     if(lastNight!==state.night){if(!meshes[`map${state.night}`])upload(`map${state.night}`,makeEnvironment(state.night));lastNight=state.night;camera=[state.player.x,state.player.z];const cx=state.night===2?35:0;lightVP=multiply(ortho(state.night===2?85:62),lookAt([cx-35,55,30],[cx,0,0]));}
     const ratio=Math.min(devicePixelRatio||1,1),w=Math.round(canvas.clientWidth*ratio),h=Math.round(canvas.clientHeight*ratio);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     const p=state.player;camera[0]+=(p.x-camera[0])*.07;camera[1]+=(p.z-camera[1])*.07;
-    const eye=[camera[0]+Math.sin(viewYaw)*range,range*.8+Math.max(0,p.y),camera[1]+Math.cos(viewYaw)*range],vp=multiply(perspective(w/h),lookAt(eye,[camera[0],Math.max(0,p.y)+.6,camera[1]])),records=[];lastVP=vp;
-    const draw=(mesh,pos,scale,color,yaw=0,material=0,glow=0,tilt=0)=>records.push({mesh,pos,scale:typeof scale==='number'?[scale,scale,scale]:scale,color,yaw,material,glow,tilt});
+    const eye=cameraOverride?.eye??[camera[0]+Math.sin(viewYaw)*range,range*.8+Math.max(0,p.y),camera[1]+Math.cos(viewYaw)*range],vp=multiply(perspective(w/h),lookAt(eye,cameraOverride?.target??[camera[0],Math.max(0,p.y)+.6,camera[1]])),records=frameRecords;records.length=0;lastVP=vp;
+    const drawAt=(mesh,x,y,z,sx,sy,sz,color,yaw=0,material=0,glow=0,tilt=0)=>{const i=records.length,o=recordPool[i]??(recordPool[i]={pos:[0,0,0],scale:[1,1,1]});o.mesh=mesh;o.pos[0]=x;o.pos[1]=y;o.pos[2]=z;o.scale[0]=sx;o.scale[1]=sy;o.scale[2]=sz;o.color=color;o.yaw=yaw;o.material=material;o.glow=glow;o.tilt=tilt;records.push(o);};
+    const draw=(mesh,pos,scale,color,yaw=0,material=0,glow=0,tilt=0)=>drawAt(mesh,...pos,...(typeof scale==='number'?[scale,scale,scale]:scale),color,yaw,material,glow,tilt);
     draw(`map${state.night}`,[0,0,0],[1,1,1],[1,1,1],0,-1);
     draw('cube',[0,-5.7,0],[600,.1,600],C.sea,0,5);
     const lights=[];
     for(const l of state.lanterns){const low=l.lit&&l.fuelUnits<1800,bright=!low||Math.floor(time*2)%2===0;
       draw('lantern',[l.x,l.y,l.z],[1,1,1],[1,1,1],0,-1);draw(l.lit?'paper':'tornPaper',[l.x,l.y+2.5,l.z],[.85,l.lit?1:.8,.85],l.lit?C.lamp.map(c=>c*(bright?1:.35)):C.unlit,0,4,l.lit&&bright?.9:0);if(l.lit&&bright)draw('orb',[l.x,l.y+2.5,l.z+.5],.14,C.core,0,0,1);lights.push(l.x,l.lit&&bright?l.y+2.4:-100,l.z);
       if(l.lit){const f=l.fuelUnits/6000,shift=(f-1)*.85;draw('cube',[l.x,l.y+4.2,l.z],[1.8,.18,.08],C.sky,viewYaw,0,.4);if(f>0)draw('cube',[l.x+Math.cos(viewYaw)*shift,l.y+4.2,l.z-Math.sin(viewYaw)*shift],[1.7*f,.12,.1],(low?(colorblind?[1,1,1]:C.danger):C.gold).map(c=>c*(bright?1:.2)),viewYaw,0,.9);}
-      if(l.lit)for(let i=0;i<3;i++){const a=i*2.094+time*.4;draw('orb',[l.x+Math.cos(a)*1.1,2+Math.sin(time+i)*.5,l.z+Math.sin(a)*1.1],.045,[1,.7,.22],0,0,1);}
+      if(l.lit&&!state.benchmark&&!reducedMotion)for(let i=0;i<3;i++){const a=i*2.094+time*.4;draw('orb',[l.x+Math.cos(a)*1.1,2+Math.sin(time+i)*.5,l.z+Math.sin(a)*1.1],.045,[1,.7,.22],0,0,1);}
     }
-    for(const[i,f]of state.fireflies.entries()){const y=f.y+.65+Math.sin(time*2+i)*.18;draw('orb',[f.x,y,f.z],.09,C.mote,0,0,1);draw('orb',[f.x,y-.1,f.z],[.13,.015,.13],C.halo,0,0,.7);}
+    for(let i=0;i<state.fireflies.length;i++){const f=state.fireflies[i],y=f.y+.65+Math.sin(time*2+i)*.18;drawAt('orb',f.x,y,f.z,.09,.09,.09,C.mote,0,0,1);drawAt('orb',f.x,y-.1,f.z,.13,.015,.13,C.halo,0,0,.7);}
     for(const c of state.charms)if(c.available){draw('cube',[c.x,c.y+1+Math.sin(time*2)*.15,c.z],[.5,.8,.06],C.gold,time);draw('cube',[c.x,c.y+1+Math.sin(time*2)*.15,c.z+.04],[.4,.68,.06],C.red,time);}
     for(const d of state.drifters)if(d.state!=='removed'){for(let i=0;i<5;i++)draw('foliage',[d.x+Math.sin(time*4+i)*.3,d.y+i*.08,d.z+i*.35],[.23,.12,.6],C.drifter);}
-    if(state.wind.warning||state.wind.active)for(let i=0;i<24;i++){const a=state.wind.dir_deg*Math.PI/180,t=(time*.7+i*.7)%12-6;draw('cube',[p.x+Math.cos(a)*t+Math.sin(i)*5,p.y+1+i%5*.4,p.z+Math.sin(a)*t+Math.cos(i)*5],[.12,.025,.25],C.gold,time+i);}
-    for(const sh of state.shadows){const bob=Math.sin(time*3+sh.x)*.1,stunned=sh.state==='stunned';draw('sphere',[sh.x,sh.y+bob,sh.z],[.55,.85,.5],stunned?C.stunned:C.shade,0,6);for(let i=0;i<3;i++)draw('sphere',[sh.x+Math.sin(time*3+i)*.2,sh.y-.62,sh.z+i*.25],[.16,.1,.4],C.shade);const angle=Math.atan2(p.x-sh.x,p.z-sh.z);for(const side of[-1,1]){const ox=side*.17,oz=.43;draw('sphere',[sh.x+ox*Math.cos(angle)+oz*Math.sin(angle),sh.y+.25+bob,sh.z-ox*Math.sin(angle)+oz*Math.cos(angle)],[.075,.09,.045],colorblind?ACCESSIBLE_RIM:C.rim,angle,0,1);}}
+    if(!reducedMotion&&(state.wind.warning||state.wind.active))for(let i=0;i<24;i++){const a=state.wind.dir_deg*Math.PI/180,t=(time*.7+i*.7)%12-6;draw('cube',[p.x+Math.cos(a)*t+Math.sin(i)*5,p.y+1+i%5*.4,p.z+Math.sin(a)*t+Math.cos(i)*5],[.12,.025,.25],C.gold,time+i);}
+    for(const sh of state.shadows){const bob=Math.sin(time*3+sh.x)*.1,stunned=sh.state==='stunned';drawAt('foliage',sh.x,sh.y+bob,sh.z,.55,.85,.5,stunned?C.stunned:C.shade,0,6);for(let i=0;i<3;i++)drawAt('orb',sh.x+Math.sin(time*3+i)*.2,sh.y-.62,sh.z+i*.25,.16,.1,.4,C.shade);const angle=Math.atan2(p.x-sh.x,p.z-sh.z),c=Math.cos(angle),s=Math.sin(angle);for(let side=-1;side<=1;side+=2){const ox=side*.17,oz=.43;drawAt('orb',sh.x+ox*c+oz*s,sh.y+.25+bob,sh.z-ox*s+oz*c,.075,.09,.045,colorblind?ACCESSIBLE_RIM:C.rim,angle,0,1);}}
     // Mây: coat, sleeves, articulated limbs, sandals, face, woven conical hat.
     const characterStart=records.length;
-    if(p.invulnerable<=0||Math.floor(time*12)%2===0){const yaw=p.facing,c=Math.cos(yaw),s=Math.sin(yaw),walk=p.moving?Math.sin(state.tick*.22):0,py=p.y??0;
+    if(reducedMotion||p.invulnerable<=0||Math.floor(time*12)%2===0){const yaw=p.facing,c=Math.cos(yaw),s=Math.sin(yaw),walk=p.moving?Math.sin(state.tick*.22):0,py=p.y??0;
       const local=(x,y,z)=>[p.x+x*c+z*s,py+y,p.z-x*s+z*c];
       for(const side of[-1,1]){const stride=walk*side*.24;draw('cylinder',local(side*.17,.39,stride),[.11,.58,.12],[.16,.2,.23],yaw,4,0,walk*side*.32);draw('sphere',local(side*.17,.1,stride+.08),[.13,.095,.22],[.17,.11,.075],yaw);draw('cylinder',local(side*.4,1.02,-stride*.6),[.11,.5,.12],C.coat,yaw,4,0,-walk*side*.25);draw('sphere',local(side*.42,.76,-stride*.6),[.095,.13,.09],[.65,.43,.27]);}
       draw('coat',local(0,.66,0),[.8,.9,.7],C.coat,yaw,4);draw('cylinder',local(0,.78,0),[.35,.08,.25],C.red,yaw,4);
@@ -127,7 +144,7 @@ export function createRenderer(canvas){
     }
     const characterRecords=records.slice(characterStart);
     lights.push(p.x,1.5+(p.y??0),p.z);while(lights.length<24)lights.push(0,-100,0);
-    if(p.pulseUntil>=state.simTick){const t=1-(p.pulseUntil-state.simTick)/45,r=.2+t*5;for(let i=0;i<32;i++){const a=i*Math.PI/16;draw('orb',[p.x+Math.cos(a)*r,.2,p.z+Math.sin(a)*r],[.06,.1,.06],[1,.73,.25],0,0,1);}}
+    if(!reducedMotion&&p.pulseUntil>=state.simTick){const t=1-(p.pulseUntil-state.simTick)/45,r=.2+t*5;for(let i=0;i<32;i++){const a=i*Math.PI/16;draw('orb',[p.x+Math.cos(a)*r,.2,p.z+Math.sin(a)*r],[.06,.1,.06],[1,.73,.25],0,0,1);}}
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,null);gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);gl.viewport(0,0,1024,1024);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);execute(records.filter(o=>o.material!==5&&o.glow<.8),depth,lightVP,time,lights,0);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,w,h);gl.clearColor(...C.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.bindTexture(gl.TEXTURE_2D,shadow);gl.useProgram(lit.p);gl.uniform3fv(lit.u.uEye,eye);execute(records,lit,vp,time,lights,.15+.55*state.lanterns.filter(l=>l.lit).length/state.lanterns.length);
     // Keep the prescribed ground-origin spawn visible below the raised central tier.

@@ -1,5 +1,15 @@
 # Changelog
 
+## Phase 4 · v1.0.0 · Contract 1.3
+
+- Standard benchmark and same-process ten-night soak, actual JSON reports.
+- ANGLE instancing and reusable buffers: reference p1 improved29.36 to66.64FPS; failed baseline retained.
+- Local disk leaderboard with serialized atomic writes, top10, restart persistence and CLI export.
+- Nine remappable actions, duplicate detection/default restore, saved reduced motion/large text;18px minimum and visual audio cues.
+- ZIP, demo, retro and v1.3 harness. Gameplay JSONL unchanged from Phase3.
+- Runtime requirement Node20 to22 for built-in WebSocket harness. Old settings migrate with defaults; tests updated explicitly, none skipped.
+
+
 ## Phase 3 · TICKET-03 · Contract 1.2
 
 Breaking changes:
@@ -28,3 +38,7 @@ Các regression movement/jump/dash/pads/ramps/physics, pickup height, pulse3D/st
 ## Phase 2 · Contract 1.1
 
 Ba bản đồ chuẩn, dash/pad/tier/wind, Gió Lạc, Bùa Gió, campaign, audio/settings/HUD và deterministic CLI. Bản đã nộp được giữ ở tag `phase-2`, commit `f670baa`.
+
+## Phase 1 · Contract 1.0
+
+Initial Night1 prototype: collection, lantern deposits, pulse, shades, HUD, deterministic CLI and procedural3D. Initial tuning and early victory were standardized/replaced by Phase2–3. No separate phase1 tag exists in the actual history.

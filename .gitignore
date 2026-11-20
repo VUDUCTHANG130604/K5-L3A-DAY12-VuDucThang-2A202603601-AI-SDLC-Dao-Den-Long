@@ -4,3 +4,7 @@ node_modules/
 !.env.example
 coverage/
 *.log
+.data/
+dist/
+.tools/
+.demo-frames/

@@ -7,3 +7,7 @@
 - Mã mô phỏng, WebGL, mô hình hình học, giao diện và văn bản trải nghiệm: tạo trong phiên làm việc với OpenAI Codex theo yêu cầu Vũ Đức Thắng.
 - Không dùng asset tải ngoài, CDN, font ngoài hay âm thanh bên ngoài. Hình ảnh game được tạo trực tiếp bằng code.
 - Font: Georgia, Segoe UI, Arial có sẵn trên hệ thống; không phân phối tệp font.
+
+- TICKET-04: user-supplied, preserved in docs/lab/TICKET-04.md. All models/materials are procedural code; Web Audio synthesizes music/effects. No external game media or AI bitmap assets.
+- Tools: OpenAI Codex assisted code/tests/docs under user direction; Node.js, Python, Git and Chrome CDP performed validation; GitHub hosts source/releases. No reliable session billing/token report was available.
+- Silent demo records actual Chrome frames. Encoding tools: imageio-ffmpeg0.8.1 (BSD-2-Clause wrapper), FFmpeg9.0.2/libx264 (GPL build; https://ffmpeg.org/legal.html). Tool binaries are not distributed; MP4 is screen-recording output.

@@ -1,0 +1,12 @@
+{
+  "contract_version": "1.3",
+  "avg_fps": 89.91092189509172,
+  "p1_low_fps": 29.360591561548514,
+  "frame_ms_p95": 17,
+  "frames": 2699,
+  "load_ms": 1433.386962890625,
+  "peak_mem_mb": null,
+  "vsync_off": true,
+  "renderer": "WebGL1 ANGLE instancing / ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11) / Chrome/157.0.8103.80",
+  "os": "win32 10.0.26200 x64"
+}

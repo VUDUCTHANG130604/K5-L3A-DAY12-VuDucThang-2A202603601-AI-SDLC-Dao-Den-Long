@@ -1,0 +1,2 @@
+export function parseArgs(args,allowed){const o={};for(let i=0;i<args.length;i+=2){const k=args[i]?.slice(2);if(!args[i]?.startsWith('--')||!allowed.includes(k)||o[k]!==undefined||args[i+1]===undefined)throw Error(`Invalid arguments: ${args[i]??''}`);o[k]=args[i+1];}return o;}
+export function integer(value,name,min=0){if(!/^-?\d+$/.test(String(value))||!Number.isSafeInteger(Number(value))||Number(value)<min)throw Error(`Invalid ${name}`);return Number(value);}

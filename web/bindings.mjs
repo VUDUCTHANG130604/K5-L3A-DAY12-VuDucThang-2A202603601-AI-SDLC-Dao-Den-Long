@@ -1,0 +1,8 @@
+export const ACTIONS=Object.freeze({forward:'Đi lên',backward:'Đi xuống',left:'Đi trái',right:'Đi phải',jump:'Nhảy',dash:'Lướt',interact:'Tương tác',pulse:'Tỏa sáng',pause:'Tạm dừng'});
+export const DEFAULT_BINDINGS=Object.freeze({forward:'KeyW',backward:'KeyS',left:'KeyA',right:'KeyD',jump:'Space',dash:'ShiftLeft',interact:'KeyE',pulse:'KeyF',pause:'Escape'});
+export function changeBinding(bindings,action,code){if(!(action in ACTIONS)||!/^\w{1,32}$/.test(code))return{ok:false,error:'Phím không hợp lệ.'};const conflict=Object.keys(ACTIONS).find(k=>k!==action&&bindings[k]===code);if(conflict)return{ok:false,error:`Trùng phím với “${ACTIONS[conflict]}”. Hãy chọn phím khác.`};return{ok:true,bindings:{...bindings,[action]:code}};}
+export function normalizeBindings(value){const result={...DEFAULT_BINDINGS,...value};if(Object.keys(ACTIONS).some(k=>typeof result[k]!=='string'||!/^\w{1,32}$/.test(result[k]))||new Set(Object.keys(ACTIONS).map(k=>result[k])).size!==9)return{...DEFAULT_BINDINGS};return Object.fromEntries(Object.keys(ACTIONS).map(k=>[k,result[k]]));}
+export const keyName=code=>code.startsWith('Key')?code.slice(3):({Space:'Space',ShiftLeft:'Shift',ShiftRight:'Shift phải',Escape:'Esc',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→'}[code]??code);
+export function actionForCode(bindings,code){const direct=Object.keys(ACTIONS).find(k=>bindings[k]===code);if(direct)return direct;
+  const aliases={ArrowUp:'forward',ArrowDown:'backward',ArrowLeft:'left',ArrowRight:'right',ShiftRight:'dash',KeyP:'pause'},action=aliases[code];return action&&bindings[action]===DEFAULT_BINDINGS[action]?action:null;
+}

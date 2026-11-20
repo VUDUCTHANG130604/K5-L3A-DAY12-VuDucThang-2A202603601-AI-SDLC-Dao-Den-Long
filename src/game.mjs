@@ -87,7 +87,7 @@ function pulse(s){const p=s.player;if(p.inventory<3||p.pulseCd>0||p.respawnTicks
   for(const d of s.drifters)if(d.state!=='removed'&&hit(d)){if(d.state==='chase'){d.state='flee';d.stateTicks=240;d.fleeDir=direction(d,p);}else if(d.state==='flee'&&d.stolen>0){emit(s,'drifter_drop',{drifter_id:d.id,amount:d.stolen});dropped(s,d.stolen,d.x,Math.max(0,d.y-.8),d.z,false);d.stolen=0;d.stateTicks=120;}}
   emit(s,'pulse',{stunned_ids:ids});
 }
-function moveShades(s){const p=s.player;for(const sh of s.shadows){
+function moveShades(s,wanderOnly=false){const p=s.player;for(const sh of s.shadows){
   const pushed=sh.pushTicks>0;if(pushed){enemyMove(s,sh,sh.pushDir[0]*4/15,sh.pushDir[1]*4/15);sh.pushTicks--;sh.state='stunned';}
   if(sh.ejectTicks>0){const lamp=s.lanterns.find(l=>isSafeLamp(l)&&distance(l,sh)<6-1e-8);if(lamp){const d=distance(lamp,sh),dir=direction(sh,lamp),amount=(6-d)/sh.ejectTicks;sh.x+=dir[0]*amount;sh.z+=dir[1]*amount;sh.ejectTicks--;if(sh.state==='drain')sh.state='wander';continue;}sh.ejectTicks=0;}
   if(pushed)continue;
@@ -97,13 +97,15 @@ function moveShades(s){const p=s.player;for(const sh of s.shadows){
   if(sh.state==='stunned'){sh.state='wander';sh.targetLanternId=null;continue;}
   if(['spawning','recoil'].includes(sh.state))sh.state='wander';
   if(sh.state==='drain'){const l=s.lanterns.find(l=>l.id===sh.targetLanternId);if(distance(p,sh)<=6)sh.state='chase';else if(!l||!l.lit||l.fuelUnits>=1800||distance(sh,l)>2){sh.state='wander';sh.targetLanternId=null;continue;}else continue;}
-  const d=distance(p,sh);if(d<=12)sh.state='chase';else if(d>18)sh.state='wander';const speed=s.night===3?4.5:4;
+  const d=distance(p,sh);if(!wanderOnly){if(d<=12)sh.state='chase';else if(d>18)sh.state='wander';}const speed=s.night===3?4.5:4;
   if(sh.state==='chase'){if(d>0)enemyMove(s,sh,(p.x-sh.x)/d*Math.min(speed/60,d),(p.z-sh.z)/d*Math.min(speed/60,d));}
   else{const weak=s.lanterns.filter(l=>l.lit&&l.fuelUnits<1800),targets=weak.length?weak:s.lanterns.filter(l=>!l.lit),target=targets.sort((a,b)=>distance(a,sh)-distance(b,sh)||order(a,b))[0];sh.targetLanternId=target?.id??null;
     if(target){const range=distance(sh,target);if(weak.length&&range<=2){sh.state='drain';sh.drainTicks=0;continue;}const dir=direction(target,sh);enemyMove(s,sh,dir[0]*Math.min(speed/60,range),dir[1]*Math.min(speed/60,range));if(weak.length&&distance(sh,target)<=2){sh.state='drain';sh.drainTicks=0;}}
     else{const x=sh.x,z=sh.z;enemyMove(s,sh,Math.cos(sh.heading)*speed/60,Math.sin(sh.heading)*speed/60);if(x===sh.x&&z===sh.z)sh.heading+=Math.PI*.7;}
   }
 }}
+// Benchmark advances only ordinary wander/safe movement; no gameplay side effects.
+export function stepBenchmark(s){s.tick++;s.simTick++;safeZones(s);moveShades(s,true);return s;}
 function moveDrifters(s){const p=s.player;for(const d of s.drifters){if(d.state==='removed')continue;if(d.state==='flee'){if(d.stateTicks<=0){d.state='removed';d.stolen=0;continue;}d.x+=d.fleeDir[0]*7/60;d.z+=d.fleeDir[1]*7/60;continue;}
   d.state=p.inventory>=5&&distance(p,d)<=15?'chase':'idle';if(d.state==='chase'){const [x,z]=direction(p,d);d.x+=x*7/60;d.z+=z*7/60;}else{d.heading+=.01;d.x+=Math.cos(d.heading)*2/60;d.z+=Math.sin(d.heading)*2/60;}
 }}

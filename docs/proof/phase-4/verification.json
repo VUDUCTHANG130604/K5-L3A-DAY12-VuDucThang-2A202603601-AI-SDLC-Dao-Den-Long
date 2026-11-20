@@ -1,0 +1,327 @@
+{
+  "generatedAt": "2026-11-20T10:08:39.637Z",
+  "contract": "1.3",
+  "node": "v24.15.0",
+  "platform": "win32",
+  "testsPassed": true,
+  "phase3GameplayIdentical": true,
+  "results": {
+    "movement": {
+      "type": "end",
+      "ticks": 120,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 133
+    },
+    "dash": {
+      "type": "end",
+      "ticks": 12,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 125
+    },
+    "pause": {
+      "type": "end",
+      "ticks": 110,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 127
+    },
+    "fall": {
+      "type": "end",
+      "ticks": 61,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 126
+    },
+    "pad2": {
+      "type": "end",
+      "ticks": 84,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 130
+    },
+    "pad3": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 149
+    },
+    "ramp": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 187
+    },
+    "drifter": {
+      "type": "end",
+      "ticks": 241,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 139
+    },
+    "drifter-drop": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 132
+    },
+    "charm": {
+      "type": "end",
+      "ticks": 2701,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 173
+    },
+    "wind": {
+      "type": "end",
+      "ticks": 2100,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 180
+    },
+    "spawn": {
+      "type": "end",
+      "ticks": 3600,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 301
+    },
+    "fuel-expiry": {
+      "type": "end",
+      "ticks": 6001,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 187
+    },
+    "fuel-pause": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 135
+    },
+    "refuel": {
+      "type": "end",
+      "ticks": 1,
+      "state": "playing",
+      "score": 15,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 148
+    },
+    "relight": {
+      "type": "end",
+      "ticks": 1,
+      "state": "playing",
+      "score": 65,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 191
+    },
+    "relight-cycle": {
+      "type": "end",
+      "ticks": 12003,
+      "state": "playing",
+      "score": 280,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 249
+    },
+    "drain-stack": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 152
+    },
+    "drain-pulse": {
+      "type": "end",
+      "ticks": 121,
+      "state": "playing",
+      "score": 15,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 144
+    },
+    "safe-restore": {
+      "type": "end",
+      "ticks": 30,
+      "state": "playing",
+      "score": 10,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 135
+    },
+    "no-early-win": {
+      "type": "end",
+      "ticks": 60,
+      "state": "playing",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 135
+    },
+    "dawn-extinguish": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 144
+    },
+    "dawn-final-relight": {
+      "type": "end",
+      "ticks": 1,
+      "state": "won",
+      "score": 663,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 131
+    },
+    "timeout-1": {
+      "type": "end",
+      "ticks": 14400,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 223
+    },
+    "win-1": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 534,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 152
+    },
+    "threshold-lost-1": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 134
+    },
+    "timeout-2": {
+      "type": "end",
+      "ticks": 16200,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 237
+    },
+    "win-2": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 662,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 130
+    },
+    "threshold-lost-2": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 2,
+      "twoRunsMs": 167
+    },
+    "timeout-3": {
+      "type": "end",
+      "ticks": 18000,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 309
+    },
+    "win-3": {
+      "type": "end",
+      "ticks": 120,
+      "state": "won",
+      "score": 790,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 139
+    },
+    "threshold-lost-3": {
+      "type": "end",
+      "ticks": 1,
+      "state": "lost",
+      "score": 0,
+      "seed": 12,
+      "night": 3,
+      "twoRunsMs": 130
+    },
+    "default-win": {
+      "type": "end",
+      "ticks": 14400,
+      "state": "won",
+      "score": 1102,
+      "seed": 12,
+      "night": 1,
+      "twoRunsMs": 565
+    }
+  },
+  "soak": {
+    "nights": 10,
+    "crashes": 0,
+    "results": [
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost",
+      "lost"
+    ],
+    "mem_start_mb": 54.703125,
+    "mem_end_mb": 57.9921875,
+    "duration_s": 0.436384
+  },
+  "instructorHiddenTestsRun": false
+}

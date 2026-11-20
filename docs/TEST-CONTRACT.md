@@ -1,8 +1,8 @@
-# Test Contract v1.2 — semantics triển khai
+# Test Contract v1.3 — semantics triển khai
 
-Nguồn: [TICKET-03](lab/TICKET-03.md), kế thừa Ticket02/PRD0 ở phần không bị thay. Manifestv1.2 tại `game.contract.json`, build kiểm tra deep equality với `src/tuning.mjs`. ADR mô hình fuel/dawn tại [ADR-0001](adr/0001-lantern-fuel-and-dawn.md); thay đổi breaking và test migration tại [CHANGELOG](../CHANGELOG.md).
+Nguồn: [TICKET-03](lab/TICKET-03.md), kế thừa Ticket02/PRD0 ở phần không bị thay. Manifestv1.3 tại `game.contract.json`, build kiểm tra deep equality với `src/tuning.mjs`. ADR mô hình fuel/dawn tại [ADR-0001](adr/0001-lantern-fuel-and-dawn.md); thay đổi breaking và test migration tại [CHANGELOG](../CHANGELOG.md).
 
-CLI từ repo: `node scripts/headless.mjs --seed 12 --night 3 --scenario scenario.json --inputs inputs.json --ticks 18000 --out result.jsonl --snapshot-every 10`. Node20+, khôngGPU. Exit0 hợp lệ kể cảlost/paused,2 JSON/schema sai,1 cờ/I/O sai. Fieldđầu vào v1.0–1.1 không bị thay tiếp tục được nhận.
+CLI từ repo: `node scripts/headless.mjs --seed 12 --night 3 --scenario scenario.json --inputs inputs.json --ticks 18000 --out result.jsonl --snapshot-every 10`. Node22+, khôngGPU. Exit0 hợp lệ kể cảlost/paused,2 JSON/schema sai,1 cờ/I/O sai. Fieldđầu vào v1.0–1.1 không bị thay tiếp tục được nhận.
 
 ## Tick, input và output
 
@@ -33,3 +33,7 @@ Safe lit&&units≥1800. Lowwander chọnweaklit gầnnhất/ID; khôngweak chọ
 Sau hết mọiupdate: no_flames trước, rồi khi dawn kiểmtra ceil(.6×total)lit; cònthờigianthìvẫnplaying dùlitđủ. Bonuswon=sum(50+floor(units/60))lit +50×flames, khôngthưởngthờigian. Điểmnạp/refuel5, first100, relight40. Scenario khôngthưởng; campaign chỉcộngĐêmthắng vàretrykhôngcộnglặp.
 
 Chi tiết khôngđổi (spawnshade300rồi480/420/360; wander/chase4/4.5; pad/dashphysics; droppedTTL; windwarning1680+1800k; GióLạc/Bùa) theoTicket02 vàcode/regression. Night3giữspawn(0,0,0), renderer cho thấyMây dưới tầngche; khôngdịchchuyểntọađộheadless vìhìnhảnh. Bộtestẩn chưađược cungcấp; khôngtuyênbốđãchạy.
+
+## v1.3 release commands
+
+Manifest adds bench_cmd and soak_cmd following TICKET-04. Gameplay tuning/JSONL remain v1.2. run_cmd --export-leaderboard out.json writes {entries} from disk without starting HTTP. See README and docs/notes/phase-4.md for measurement limits.
