@@ -1,5 +1,7 @@
 # Đảo Đèn Lồng · v1.0.0
 
+[Tải video demo 43 giây](https://github.com/VUDUCTHANG130604/K5-L3A-DAY12-VuDucThang-2A202603601-AI-SDLC-Dao-Den-Long/releases/download/v1.0.0/demo.mp4) · [GitHub Release v1.0.0](https://github.com/VUDUCTHANG130604/K5-L3A-DAY12-VuDucThang-2A202603601-AI-SDLC-Dao-Den-Long/releases/tag/v1.0.0)
+
 Game 3D WebGL: Mây gom đom đóm, thắp và châm dầu để giữ **3/5 · 4/6 · 5/7 đèn** sáng tới bình minh qua ba Đêm. Contract **1.3**, logic cố định 60 Hz dùng chung web/headless.
 
 ![Chơi thật ở 1280×720](docs/proof/phase-4/gameplay.png)
@@ -51,7 +53,7 @@ Bench cần Chrome/Chromium; đặt `CHROME_BIN` nếu không tự tìm được
 
 Máy tham khảo: **125,4FPS**, 1% thấp nhất **66,6FPS**, tải **1189,6ms**. Máy giảng viên mới quyết định đạt ngưỡng. Soak dùng seed7+i với i bắt đầu0, input độc lập mỗi Đêm, cùng process, không giữ lịch sử. Cờ V8 giới hạn young heap và GC tại reset để so RSS; không tăng baseline giả. Kết quả:0crash,RSS tăng khoảng6%, giới hạn20%.
 
-Gói: `dist/dao-den-long-v1.0.0.zip`, kèm `SHA256SUMS.txt`; cần PowerShell Compress-Archive trên Windows hoặc zip trên Linux/macOS. [Video](docs/demo/demo.mp4), [bằng chứng](docs/proof/phase-4/README.md), [spec và AC](docs/notes/phase-4.md), [retro](docs/RETROSPECTIVE.md), [contract](docs/TEST-CONTRACT.md), [changelog](CHANGELOG.md), [credits](CREDITS.md), [license](LICENSE).
+Gói: `dist/dao-den-long-v1.0.0.zip`, kèm `SHA256SUMS.txt`; cần PowerShell Compress-Archive trên Windows hoặc zip trên Linux/macOS. [Bằng chứng](docs/proof/phase-4/README.md), [spec và AC](docs/notes/phase-4.md), [retro và nhật ký token](docs/RETROSPECTIVE.md), [contract](docs/TEST-CONTRACT.md), [changelog](CHANGELOG.md), [credits](CREDITS.md), [license](LICENSE).
 
 ## Luật và lịch sử
 

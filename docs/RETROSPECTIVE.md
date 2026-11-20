@@ -20,6 +20,14 @@ Harness hữu ích nhất: AGENTS.md giữ nguồn luật, skill giữ thứ t�
 
 ## Token, chi phí và lần làm lại
 
-Không có bộ đếm token/billing tổng cả bốn phase. Ước lượng hồi cứu200.000–500.000token qua nhiều lượt/compaction, độ tin cậy thấp; không phải số đo/hóa đơn. Không thể quy thành tiền thực trả khi thiếu gói/model/tỷ lệ input-output-cache. Chỉ tính tiền khi có token thực và đơn giá tương ứng, không tự gán USD.
+Phiên làm việc thiếu log sử dụng theo phase. Bảng dưới phân bổ khoảng ước lượng tổng **200.000–500.000 token** đã ghi trong retro, dựa trên phạm vi công việc của từng phase. Các tỷ trọng do hồi cứu, làm tròn tới phần trăm và có độ tin cậy thấp. Chi phí thực trả chưa xác định vì thiếu dữ liệu model, giá và tỷ lệ token đầu vào, đầu ra, cache.
+
+| Phase | Tỷ trọng ước tính | Khoảng token phân bổ | Căn cứ và cách giảm lượt xử lý |
+| --- | ---: | ---: | --- |
+| [1](notes/phase-1.md) | 15% | 30.000–75.000 | Vòng chơi đầu tiên, CLI và đồ họa. Dùng chung mô phỏng và dựng mô hình bằng code để giảm số công cụ phải xử lý. |
+| [2](notes/phase-2.md) | 25% | 50.000–125.000 | Chuẩn hóa thông số và mở rộng ba Đêm. Gom luật và tiêu chí vào spec để tái dùng khi sửa code và tạo kịch bản. |
+| [3](notes/phase-3.md) | 25% | 50.000–125.000 | Luật dầu, bình minh và sửa replay. Dùng ADR để giữ quyết định nhất quán và dùng kiểm thử biên để khoanh vùng sai lệch. |
+| [4](notes/phase-4.md) | 35% | 70.000–175.000 | Benchmark, tối ưu renderer, QA trình duyệt, đóng gói và video. Dùng script tóm tắt kết quả và lưu bằng chứng dưới dạng tệp. |
+| **Tổng** | **100%** | **200.000–500.000** | Khoảng ước lượng hồi cứu, chưa có số liệu sử dụng để đối chiếu. |
 
 Tiết kiệm bằng rg có mục tiêu, đọc từng phần, script sinh bằng chứng thay dán JSONL dài, giữ summary quyết định và chỉ lặp test khi thay đổi liên quan. Nếu làm lại: commit/tag từng phase ngay khi xong, dựng performance scene sớm, tách gameplay/presentation từ đầu, chuẩn bị recorder/package trước ngày release. Người dùng vẫn cần chơi thử/nghe audio; automation không thay đánh giá cảm giác và độ rõ cảnh báo.
